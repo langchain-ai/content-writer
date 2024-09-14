@@ -1,5 +1,13 @@
+"use client"
+
 import React from 'react';
-import { Composer, ThreadPrimitive } from "@assistant-ui/react";
+import {
+  Composer,
+  ThreadPrimitive,
+  AssistantRuntimeProvider,
+  useLocalRuntime,
+  type ChatModelAdapter,
+} from "@assistant-ui/react";
 import { AssistantMessage, UserMessage } from './Message';
 
 export function TweetComposer(): React.ReactElement {

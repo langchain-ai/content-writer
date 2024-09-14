@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./tweet_composer/__init__.py:build_graph"
+  },
+  "env": ".env"
+}

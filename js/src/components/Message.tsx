@@ -1,5 +1,3 @@
-"use server";
-
 import { MessagePrimitive } from "@assistant-ui/react";
 import { ActionBarPrimitive } from "@assistant-ui/react";
 
