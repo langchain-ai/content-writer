@@ -33,11 +33,7 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
             UserMessage: MyUserMessage,
             EditComposer: MyEditComposer,
             AssistantMessage: (messageProps) => (
-              <MyAssistantMessage
-                {...messageProps}
-                onCopy={props.onCopy}
-                onEdit={props.onEdit}
-              />
+              <MyAssistantMessage {...messageProps} onCopy={props.onCopy} />
             ),
           }}
         />
@@ -173,13 +169,12 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />
       </div>
 
-      <MyAssistantActionBar onEdit={props.onEdit} onCopy={props.onCopy} />
+      <MyAssistantActionBar onCopy={props.onCopy} />
     </MessagePrimitive.Root>
   );
 };
 
 interface AssistantActionBarProps {
-  onEdit: () => void;
   onCopy: () => void;
 }
 
@@ -198,7 +193,7 @@ const MyAssistantActionBar: FC<AssistantActionBarProps> = (
           <PencilIcon />
         </TooltipIconButton>
       </ActionBarPrimitive.Edit>
-      <ActionBarPrimitive.Copy onClick={props?.onCopy} asChild>
+      <ActionBarPrimitive.Copy onClick={props.onCopy} asChild>
         <TooltipIconButton tooltip="Copy">
           <MessagePrimitive.If copied>
             <CheckIcon />

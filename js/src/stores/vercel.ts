@@ -13,7 +13,6 @@ export class VercelMemoryStore extends BaseStore {
     prefixes: string[]
   ): Promise<Record<string, Record<string, Values>>> {
     const result: Record<string, Record<string, Values>> = {};
-
     for (const prefix of prefixes) {
       const keys = await this.client.keys(`${prefix}:*`);
       result[prefix] = {};

@@ -12,6 +12,8 @@ import { z } from "zod";
 import { createClient } from "@vercel/kv";
 import { NextRequest, NextResponse } from "next/server";
 import { CoreMessage } from "@assistant-ui/react";
+import { BaseMessage } from "@langchain/core/messages";
+import { RunnableConfig } from "@langchain/core/runnables";
 
 const GraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
@@ -29,7 +31,10 @@ const SYSTEM_PROMPT = `You are a helpful assistant tasked with thoughtfully fulf
 User defined rules:
 {userRules}`;
 
-const callModel = async (state: typeof GraphAnnotation.State) => {
+const callModel = async (
+  state: typeof GraphAnnotation.State,
+  config?: RunnableConfig
+) => {
   const model = new ChatOpenAI({
     model: "gpt-4o-mini",
     temperature: 0,
@@ -41,16 +46,28 @@ const callModel = async (state: typeof GraphAnnotation.State) => {
   }
 
   const systemPrompt = SYSTEM_PROMPT.replace("{userRules}", rules);
-
-  const response = await model.invoke([
-    {
-      role: "system",
-      content: systemPrompt,
-    },
-    ...state.messages,
-  ]);
-
+  console.log("Before model call");
+  const response = await model.invoke(
+    [
+      {
+        role: "system",
+        content: systemPrompt,
+      },
+      ...state.messages,
+    ],
+    config
+  );
+  console.log("After model call");
   return { messages: [response] };
+};
+
+const _prepareConversation = (messages: BaseMessage[]): string => {
+  return messages
+    .map((msg) => {
+      if (typeof msg.content !== "string") return "";
+      return `${msg._getType()}: ${msg.content}`;
+    })
+    .join("\n");
 };
 
 /**
@@ -64,24 +81,44 @@ const callModel = async (state: typeof GraphAnnotation.State) => {
  * The LLM will always re-generate the entire rules list, so it is important to pass the entire history to the model.
  * @param state The current state of the graph
  */
-const generateInsights = async (state: typeof GraphAnnotation.State) => {
-  let systemPrompt = `You are a helpful assistant, tasked with generating rules based on insights you've gathered from the following conversation.
-This conversation contains back and fourth between an AI assistant, and a user who is using the assistant to generate text for things such as writing tweets.
-User messages which are prefixed with "REVISION" contain the entire revised text the user made to the assistant message directly before in the conversation.
-There also may be additional back and fourth between the user and the assistant which you should consider when generating rules.
+const generateInsights = async (
+  state: typeof GraphAnnotation.State,
+  config?: RunnableConfig
+) => {
+  const systemPrompt = `This conversation contains back and fourth between an AI assistant, and a user who is using the assistant to generate text.
 
-In your response, include every single rule, including those which already existed. You should only ever exclude rule(s) if the user has explicitly stated something which contradicts a previous rule.
-The user and assistant may have had conversations before which you do not have access to, so be careful when removing rules.
+User messages which are prefixed with "REVISION" contain the entire revised text the user made to the assistant message directly before in the conversation.
+
+There also may be additional back and fourth between the user and the assistant.
+
+Based on the conversation, and paying particular attention to any changes made in the "REVISION", your job is to create a list of rules to use in the future to help the AI assistant better generate text.
+
+In your response, include every single rule you want the AI assistant to follow in the future. You should list rules based on a combination of the existing conversation as well as previous rules. You can modify previous rules if you think the new conversation has helpful information, or you can delete old rules if they don't seem relevant, or you can add new rules based on the conversation.
+
+Your entire response will be treated as the new rules, so don't include any preamble.
 
 The user has defined the following rules:
-{userRules}`;
+
+<userrules>
+{userRules}
+</userrules>
+
+Here is the conversation:
+
+<conversation>
+{conversation}
+</conversation>
+
+Respond with updated rules to keep in mind for future conversations. Try to keep the rules you list high signal-to-noise - don't include unnecessary ones, but make sure the ones you do add are descriptive. Combine ones that seem similar and/or contradictory`;
 
   let rules = DEFAULT_RULES_STRING;
   if (state.userRules && state.userRules.rules?.length) {
     rules = `- ${state.userRules.rules.join("\n - ")}`;
   }
 
-  systemPrompt = systemPrompt.replace("{userRules}", rules);
+  const prompt = systemPrompt
+    .replace("{userRules}", rules)
+    .replace("{conversation}", _prepareConversation(state.messages));
 
   const userRulesSchema = z.object({
     rules: z
@@ -94,10 +131,15 @@ The user has defined the following rules:
     temperature: 0,
   }).withStructuredOutput(userRulesSchema, { name: "userRules" });
 
-  const result = await modelWithStructuredOutput.invoke([
-    systemPrompt,
-    ...state.messages,
-  ]);
+  const result = await modelWithStructuredOutput.invoke(
+    [
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    config
+  );
 
   return {
     userRules: {
@@ -114,11 +156,13 @@ The user has defined the following rules:
  * @param {typeof GraphAnnotation.State} state The current state of the graph
  */
 const shouldGenerateInsights = (state: typeof GraphAnnotation.State) => {
-  const { userAcceptedText } = state;
-  if (userAcceptedText) {
+  const { hasAcceptedText } = state;
+  if (hasAcceptedText) {
+    console.log("generating insights");
     // Greater than three means there was at least one followup message after the original AI Message.
     return "generateInsights";
   }
+  console.log("calling model");
   return "callModel";
 };
 
@@ -153,37 +197,14 @@ function buildGraph() {
   });
 }
 
-const mapMessagesToOpenAI = (
-  messages: CoreMessage[]
-): { role: string; content: string }[] => {
-  return messages.map(({ role, content }) => {
-    if (!content) {
-      console.log("wtf no content?", messages);
-      throw new Error("Invalid message content");
-    }
-    if ("text" in content[0]) {
-      return {
-        role,
-        content: content[0].text,
-      };
-    } else {
-      throw new Error("Invalid message content");
-    }
-  });
-};
-
 export async function POST(req: NextRequest) {
   const reqJson = await req.json();
   const { messages, userId, hasAcceptedText } = reqJson;
-  console.log("userId", userId, "hasAcceptedText", hasAcceptedText);
-  const messagesMapped = mapMessagesToOpenAI(messages);
+  console.log({ messages });
   const graph = buildGraph();
 
-  const config = { configurable: { userId: "123" }, version: "v2" as const };
-  const stream = graph.streamEvents(
-    { messages: messagesMapped, hasAcceptedText },
-    config
-  );
+  const config = { configurable: { userId }, version: "v2" as const };
+  const stream = graph.streamEvents({ messages, hasAcceptedText }, config);
 
   const encoder = new TextEncoder();
 
