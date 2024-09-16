@@ -56,7 +56,10 @@ export async function processStream(
 
           const newText = processEvent(streamEvent);
           if (newText) {
-            fullMessage.content += newText;
+            fullMessage = new AIMessage({
+              id: fullMessage.id,
+              content: fullMessage.content + newText,
+            });
           }
 
           if (fullMessage.content && fullMessage.id) {
