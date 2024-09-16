@@ -1,30 +1,51 @@
-"use client"
+"use client";
 
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  Composer,
-  ThreadPrimitive,
   AssistantRuntimeProvider,
   useLocalRuntime,
-  type ChatModelAdapter,
 } from "@assistant-ui/react";
-import { AssistantMessage, UserMessage } from './Message';
+import { v4 as uuidv4 } from "uuid";
+import { MyThread } from "./Primitives";
+import { USER_ID_COOKIE } from "@/constants";
+import { getCookie, setCookie } from "@/lib/cookies";
+import { CustomAdapter } from "@/lib/adapter";
 
 export function TweetComposer(): React.ReactElement {
+  const [hasAcceptedText, setHasAcceptedText] = useState(false);
+  const [userId, setUserId] = useState("");
+  const runtime = useLocalRuntime(CustomAdapter);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (userId) return;
+
+    const userIdCookie = getCookie(USER_ID_COOKIE);
+    if (!userIdCookie) {
+      const newUserId = uuidv4();
+      setCookie(USER_ID_COOKIE, newUserId);
+      setUserId(newUserId);
+    } else {
+      setUserId(userIdCookie);
+    }
+  }, []);
+
+  // Update the additional fields when the user accepts the text, or userId changes.
+  useEffect(() => {
+    CustomAdapter.setAdditionalFields({ hasAcceptedText, userId });
+  }, [hasAcceptedText, userId]);
 
   return (
-    <div>
-      <h1>Tweet Composer</h1>
-      <ThreadPrimitive.Root>
-        <ThreadPrimitive.Viewport>
-          {/* <ThreadPrimitive.Empty>...</ThreadPrimitive.Empty> */}
-          <ThreadPrimitive.Messages components={{
-            UserMessage,
-            AssistantMessage,
-          }} />
-        </ThreadPrimitive.Viewport>
-        <Composer />
-      </ThreadPrimitive.Root>
+    <div className="h-full">
+      <AssistantRuntimeProvider runtime={runtime}>
+        <MyThread
+          onCopy={() => setHasAcceptedText(true)}
+          onEdit={() => {
+            // update w/ new user message containing revision
+            setHasAcceptedText(true);
+          }}
+        />
+      </AssistantRuntimeProvider>
     </div>
-  )
+  );
 }

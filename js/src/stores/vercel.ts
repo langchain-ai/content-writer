@@ -4,29 +4,29 @@ import { kv, type VercelKV } from "@vercel/kv";
 export class VercelMemoryStore extends BaseStore {
   protected client: VercelKV;
 
-  constructor(fields?: {
-    client?: VercelKV;
-  }) {
+  constructor(fields?: { client?: VercelKV }) {
     super();
     this.client = fields?.client || kv;
-  };
+  }
 
-  async list(prefixes: string[]): Promise<Record<string, Record<string, Values>>> {
+  async list(
+    prefixes: string[]
+  ): Promise<Record<string, Record<string, Values>>> {
     const result: Record<string, Record<string, Values>> = {};
-  
+
     for (const prefix of prefixes) {
       const keys = await this.client.keys(`${prefix}:*`);
       result[prefix] = {};
-  
+
       for (const fullKey of keys) {
         const value = await this.client.get<string>(fullKey);
         if (value !== null) {
-          const [, key] = fullKey.split(':');
+          const [, key] = fullKey.split(":");
           result[prefix][key] = JSON.parse(value);
         }
       }
     }
-  
+
     return result;
   }
 
@@ -41,7 +41,7 @@ export class VercelMemoryStore extends BaseStore {
         pipeline.set(fullKey, JSON.stringify(value));
       }
     }
-  
+
     await pipeline.exec();
   }
 }
