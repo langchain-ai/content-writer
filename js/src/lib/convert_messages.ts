@@ -12,9 +12,6 @@ import {
 export const convertLangchainMessages: useExternalMessageConverter.Callback<
   BaseMessage
 > = (message) => {
-  if (!message) {
-    throw new Error("Message is undefined");
-  }
   if (typeof message.content !== "string") {
     throw new Error("Only text messages are supported");
   }

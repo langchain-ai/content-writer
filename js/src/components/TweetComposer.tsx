@@ -54,13 +54,13 @@ export function TweetComposer(): React.ReactElement {
         }),
       });
 
-      await processStream(response, setRenderedMessages);
+      const fullMessage = await processStream(response, setRenderedMessages);
+      console.log("fullMessage", fullMessage);
+      setAllMessages((prevMessages) => [...prevMessages, fullMessage]);
     } catch (error) {
       console.error("Error running message:", error);
     } finally {
       setIsRunning(false);
-      const lastRenderedMessage = renderedMessages[renderedMessages.length - 1];
-      setAllMessages((prevMessages) => [...prevMessages, lastRenderedMessage]);
     }
   }
 

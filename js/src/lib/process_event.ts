@@ -34,7 +34,7 @@ export async function processStream(
     throw new Error("No reader found in response body");
   }
   const decoder = new TextDecoder();
-  let fullMessage: BaseMessage = new AIMessage({
+  let fullMessage = new AIMessage({
     content: "",
     id: "",
   });
@@ -77,4 +77,6 @@ export async function processStream(
       }
     }
   }
+
+  return fullMessage;
 }
