@@ -11,7 +11,7 @@ import {
 } from "@assistant-ui/react";
 import { useEffect, useState, type FC } from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   ArrowDownIcon,
@@ -76,9 +76,10 @@ const MyThreadWelcome: FC = () => {
     <ThreadPrimitive.Empty>
       <div className="flex flex-grow basis-full flex-col items-center justify-center">
         <Avatar>
-          <AvatarFallback>C</AvatarFallback>
+          <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
+          <AvatarFallback>LC</AvatarFallback>
         </Avatar>
-        <p className="mt-4 font-medium">How can I help you today?</p>
+        <p className="mt-4 font-medium">What would you like to Tweet today?</p>
       </div>
     </ThreadPrimitive.Empty>
   );
@@ -193,13 +194,13 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
   const edit = useActionBarEdit();
   const { useMessage, useEditComposer } = useMessageContext();
   const currMessage = useMessage();
+  const isLast = currMessage.isLast;
   const editComposer = useEditComposer();
 
   useEffect(() => {
-    if (!currMessage.isLast) {
+    if (!isLast) {
       editComposer.cancel();
     }
-
     const status = (currMessage.message as ThreadAssistantMessage).status;
     const isDone = status.type !== "running";
     if (!isDone) {
@@ -208,9 +209,8 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
     if (!edit) {
       return;
     }
-
-    // edit();
-  }, [currMessage]);
+    edit();
+  }, [currMessage, isLast]);
 
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
