@@ -1,13 +1,5 @@
-import {
-  ToolCallContentPart,
-  useExternalMessageConverter,
-} from "@assistant-ui/react";
-import {
-  AIMessage,
-  AIMessageChunk,
-  BaseMessage,
-  ToolMessage,
-} from "@langchain/core/messages";
+import { useExternalMessageConverter } from "@assistant-ui/react";
+import { BaseMessage, ToolMessage } from "@langchain/core/messages";
 
 export const convertLangchainMessages: useExternalMessageConverter.Callback<
   BaseMessage
@@ -48,7 +40,6 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
         result: message.content,
       };
     default:
-      console.log("throwing error");
       throw new Error(`Unsupported message type: ${message._getType()}`);
   }
 };

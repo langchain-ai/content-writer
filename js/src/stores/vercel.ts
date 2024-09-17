@@ -20,8 +20,11 @@ export class VercelMemoryStore extends BaseStore {
       for (const fullKey of keys) {
         const value = await this.client.get<string>(fullKey);
         if (value !== null) {
-          const [, key] = fullKey.split(":");
-          result[prefix][key] = JSON.parse(value);
+          // Get the last part of the key. This represents the key of the shared value object the user has set.
+          const items = fullKey.split(":");
+          const key = items[items.length - 1];
+          result[prefix][key] =
+            typeof value === "string" ? JSON.parse(value) : value;
         }
       }
     }

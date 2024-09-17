@@ -11,7 +11,6 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { createClient } from "@vercel/kv";
 import { NextRequest, NextResponse } from "next/server";
-import { CoreMessage } from "@assistant-ui/react";
 import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 
@@ -46,7 +45,6 @@ const callModel = async (
   }
 
   const systemPrompt = SYSTEM_PROMPT.replace("{userRules}", rules);
-  console.log("Before model call");
   const response = await model.invoke(
     [
       {
@@ -57,7 +55,6 @@ const callModel = async (
     ],
     config
   );
-  console.log("After model call");
   return { messages: [response] };
 };
 
@@ -158,11 +155,9 @@ Respond with updated rules to keep in mind for future conversations. Try to keep
 const shouldGenerateInsights = (state: typeof GraphAnnotation.State) => {
   const { hasAcceptedText } = state;
   if (hasAcceptedText) {
-    console.log("generating insights");
     // Greater than three means there was at least one followup message after the original AI Message.
     return "generateInsights";
   }
-  console.log("calling model");
   return "callModel";
 };
 
@@ -200,7 +195,6 @@ function buildGraph() {
 export async function POST(req: NextRequest) {
   const reqJson = await req.json();
   const { messages, userId, hasAcceptedText } = reqJson;
-  console.log({ messages });
   const graph = buildGraph();
 
   const config = { configurable: { userId }, version: "v2" as const };

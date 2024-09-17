@@ -210,17 +210,17 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-"@langchain/langgraph-checkpoint@~0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-checkpoint/-/langgraph-checkpoint-0.0.5.tgz#04b6941c97ae6071090f0a7824e84f6edc3dfbcd"
-  integrity sha512-Twa4e93BlGqpuwgdvhviNgcjefEKnY1L4roA8BrN/2eNQAAAbB0ETS9ix8k+5uahAC2DXWTBO2bXeYYYHQpWuw==
+"@langchain/langgraph-checkpoint@~0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-checkpoint/-/langgraph-checkpoint-0.0.6.tgz#69f0c5c9aeefd48dcf0fa1ffa0744d8139a9f27d"
+  integrity sha512-hQsznlUMFKyOCaN9VtqNSSemfKATujNy5ePM6NX7lruk/Mmi2t7R9SsBnf9G2Yts+IaIwv3vJJaAFYEHfqbc5g==
   dependencies:
     uuid "^10.0.0"
 
 "@langchain/langgraph@file:../../../wt/brace/managed-values/libs/langgraph":
-  version "0.2.2"
+  version "0.2.3"
   dependencies:
-    "@langchain/langgraph-checkpoint" "~0.0.5"
+    "@langchain/langgraph-checkpoint" "~0.0.6"
     double-ended-queue "^2.1.0-0"
     uuid "^10.0.0"
     zod "^3.23.8"
@@ -354,6 +354,26 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-context/-/react-context-1.1.0.tgz#6df8d983546cfd1999c8512f3a8ad85a6e7fcee8"
   integrity sha512-OKrckBy+sMEgYM/sMmqmErVn0kZqrHPJze+Ql3DzYsDDp0hl0L62nx/2122/Bvps1qz645jlcu2tD9lrRSdf8A==
+
+"@radix-ui/react-dialog@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-dialog/-/react-dialog-1.1.1.tgz#4906507f7b4ad31e22d7dad69d9330c87c431d44"
+  integrity sha512-zysS+iU4YP3STKNS6USvFVqI4qqx8EpiwmT5TuCApVEBca+eRCbONi4EgzfNSuVnOXvC5UPHHMjs8RXO6DH9Bg==
+  dependencies:
+    "@radix-ui/primitive" "1.1.0"
+    "@radix-ui/react-compose-refs" "1.1.0"
+    "@radix-ui/react-context" "1.1.0"
+    "@radix-ui/react-dismissable-layer" "1.1.0"
+    "@radix-ui/react-focus-guards" "1.1.0"
+    "@radix-ui/react-focus-scope" "1.1.0"
+    "@radix-ui/react-id" "1.1.0"
+    "@radix-ui/react-portal" "1.1.1"
+    "@radix-ui/react-presence" "1.1.0"
+    "@radix-ui/react-primitive" "2.0.0"
+    "@radix-ui/react-slot" "1.1.0"
+    "@radix-ui/react-use-controllable-state" "1.1.0"
+    aria-hidden "^1.1.1"
+    react-remove-scroll "2.5.7"
 
 "@radix-ui/react-dismissable-layer@1.1.0":
   version "1.1.0"

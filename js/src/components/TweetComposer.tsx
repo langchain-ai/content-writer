@@ -55,7 +55,6 @@ export function TweetComposer(): React.ReactElement {
       });
 
       const fullMessage = await processStream(response, setRenderedMessages);
-      console.log("fullMessage", fullMessage);
       setAllMessages((prevMessages) => [...prevMessages, fullMessage]);
     } catch (error) {
       console.error("Error running message:", error);
@@ -150,10 +149,6 @@ export function TweetComposer(): React.ReactElement {
       setUserId(userIdCookie);
     }
   }, []);
-
-  useEffect(() => {
-    console.log("renderedMessages", renderedMessages);
-  }, [renderedMessages]);
 
   return (
     <div className="h-full">
