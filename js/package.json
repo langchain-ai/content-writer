@@ -15,7 +15,7 @@
     "@assistant-ui/react-markdown": "^0.2.12",
     "@assistant-ui/react-syntax-highlighter": "^0.0.11",
     "@langchain/core": "^0.3.0",
-    "@langchain/langgraph": "file:/Users/bracesproul/code/lang-chain-ai/wt/brace/managed-values/libs/langgraph",
+    "@langchain/langgraph": "^0.2.4",
     "@langchain/openai": "^0.3.0",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",

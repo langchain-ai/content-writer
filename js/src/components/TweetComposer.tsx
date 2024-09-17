@@ -24,6 +24,8 @@ const initialMessages = [
 ];
 
 export function TweetComposer(): React.ReactElement {
+  // Named userId, but passed as `assistantId` to the API.
+  // This field is ignored/unused when using a LangGraph cloud API.
   const [userId, setUserId] = useState("");
   // Only messages which are rendered in the UI. This mainly excludes revised messages.
   const [renderedMessages, setRenderedMessages] =
@@ -56,7 +58,7 @@ export function TweetComposer(): React.ReactElement {
         },
         body: JSON.stringify({
           messages: currentConversation.map(convertToOpenAIFormat),
-          userId,
+          assistantId: userId,
           hasAcceptedText: false,
         }),
       });
@@ -121,7 +123,7 @@ export function TweetComposer(): React.ReactElement {
         },
         body: JSON.stringify({
           messages: currentConversation.map(convertToOpenAIFormat),
-          userId,
+          assistantId: userId,
           hasAcceptedText: true,
         }),
       });
@@ -169,7 +171,7 @@ export function TweetComposer(): React.ReactElement {
               },
               body: JSON.stringify({
                 messages: allMessages.map(convertToOpenAIFormat),
-                userId,
+                assistantId: userId,
                 hasAcceptedText: true,
               }),
             });
