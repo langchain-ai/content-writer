@@ -18,12 +18,19 @@ import {
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
 
+const initialMessages = [
+  new HumanMessage("Hello, how are you?"),
+  new AIMessage("I'm doing well, thank you for asking!"),
+];
+
 export function TweetComposer(): React.ReactElement {
   const [userId, setUserId] = useState("");
   // Only messages which are rendered in the UI. This mainly excludes revised messages.
-  const [renderedMessages, setRenderedMessages] = useState<BaseMessage[]>([]);
+  const [renderedMessages, setRenderedMessages] =
+    useState<BaseMessage[]>(initialMessages);
   // Messages which contain revisions are not rendered.
-  const [allMessages, setAllMessages] = useState<BaseMessage[]>([]);
+  const [allMessages, setAllMessages] =
+    useState<BaseMessage[]>(initialMessages);
   const [isRunning, setIsRunning] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {

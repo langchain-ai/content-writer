@@ -4,9 +4,12 @@ import {
   ActionBarPrimitive,
   ComposerPrimitive,
   MessagePrimitive,
+  ThreadAssistantMessage,
   ThreadPrimitive,
+  useActionBarEdit,
+  useMessageContext,
 } from "@assistant-ui/react";
-import type { FC } from "react";
+import { useEffect, useState, type FC } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -19,6 +22,13 @@ import {
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
+import { RuleInfoDialog } from "./RuleInfoDialog";
 
 export interface MyThreadProps extends MyAssistantMessageProps {}
 
@@ -138,6 +148,8 @@ const MyUserActionBar: FC = () => {
 };
 
 const MyEditComposer: FC = () => {
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
+
   return (
     <ComposerPrimitive.Root className="bg-muted my-4 flex w-full max-w-2xl flex-col gap-2 rounded-xl">
       <ComposerPrimitive.Input className="text-foreground flex h-8 w-full resize-none border-none bg-transparent p-4 pb-0 outline-none focus:ring-0" />
@@ -147,9 +159,28 @@ const MyEditComposer: FC = () => {
           <Button variant="ghost">Cancel</Button>
         </ComposerPrimitive.Cancel>
         <ComposerPrimitive.Send asChild>
-          <Button>Save</Button>
+          <TooltipProvider>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button>Save</Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Will trigger rule generation (
+                  <a
+                    onClick={() => setInfoDialogOpen(true)}
+                    className="text-blue-400 underline underline-offset-2 cursor-pointer"
+                  >
+                    whats this?
+                  </a>
+                  )
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </ComposerPrimitive.Send>
       </div>
+      <RuleInfoDialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen} />
     </ComposerPrimitive.Root>
   );
 };
@@ -159,6 +190,28 @@ interface MyAssistantMessageProps extends AssistantActionBarProps {}
 const MyAssistantMessage: FC<MyAssistantMessageProps> = (
   props: MyAssistantMessageProps
 ) => {
+  const edit = useActionBarEdit();
+  const { useMessage, useEditComposer } = useMessageContext();
+  const currMessage = useMessage();
+  const editComposer = useEditComposer();
+
+  useEffect(() => {
+    if (!currMessage.isLast) {
+      editComposer.cancel();
+    }
+
+    const status = (currMessage.message as ThreadAssistantMessage).status;
+    const isDone = status.type !== "running";
+    if (!isDone) {
+      return;
+    }
+    if (!edit) {
+      return;
+    }
+
+    // edit();
+  }, [currMessage]);
+
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
@@ -181,6 +234,8 @@ interface AssistantActionBarProps {
 const MyAssistantActionBar: FC<AssistantActionBarProps> = (
   props: AssistantActionBarProps
 ) => {
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
+
   return (
     <ActionBarPrimitive.Root
       hideWhenRunning
@@ -189,20 +244,36 @@ const MyAssistantActionBar: FC<AssistantActionBarProps> = (
       className="text-muted-foreground data-[floating]:bg-background col-start-3 row-start-2 -ml-1 flex gap-1 data-[floating]:absolute data-[floating]:rounded-md data-[floating]:border data-[floating]:p-1 data-[floating]:shadow-sm"
     >
       <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip="Edit">
-          <PencilIcon />
+        <TooltipIconButton tooltip="Edit" className="w-10 h-10">
+          <PencilIcon size={24} />
         </TooltipIconButton>
       </ActionBarPrimitive.Edit>
       <ActionBarPrimitive.Copy onClick={props.onCopy} asChild>
-        <TooltipIconButton tooltip="Copy">
+        <TooltipIconButton
+          delayDuration={0}
+          tooltip={
+            <p>
+              Will trigger rule generation (
+              <a
+                onClick={() => setInfoDialogOpen(true)}
+                className="text-blue-400 underline underline-offset-2 cursor-pointer"
+              >
+                whats this?
+              </a>
+              )
+            </p>
+          }
+          className="w-10 h-10"
+        >
           <MessagePrimitive.If copied>
-            <CheckIcon />
+            <CheckIcon size={24} />
           </MessagePrimitive.If>
           <MessagePrimitive.If copied={false}>
-            <CopyIcon />
+            <CopyIcon size={24} />
           </MessagePrimitive.If>
         </TooltipIconButton>
       </ActionBarPrimitive.Copy>
+      <RuleInfoDialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen} />
     </ActionBarPrimitive.Root>
   );
 };
