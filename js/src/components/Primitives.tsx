@@ -7,9 +7,9 @@ import {
   ThreadAssistantMessage,
   ThreadPrimitive,
   useActionBarEdit,
-  useMessageContext,
+  useMessage,
 } from "@assistant-ui/react";
-import { useEffect, useState, type FC } from "react";
+import { useEffect, useRef, useState, type FC } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -192,25 +192,17 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
   props: MyAssistantMessageProps
 ) => {
   const edit = useActionBarEdit();
-  const { useMessage, useEditComposer } = useMessageContext();
-  const currMessage = useMessage();
-  const isLast = currMessage.isLast;
-  const editComposer = useEditComposer();
+  const isDone = useMessage(
+    (m) => (m.message as ThreadAssistantMessage).status?.type !== "running"
+  );
+  const isNew = useRef(!isDone);
+  const isLast = useMessage((m) => m.isLast);
 
   useEffect(() => {
-    if (!isLast) {
-      editComposer.cancel();
-    }
-    const status = (currMessage.message as ThreadAssistantMessage).status;
-    const isDone = status.type !== "running";
-    if (!isDone) {
-      return;
-    }
-    if (!edit) {
-      return;
-    }
+    if (!isNew || !isLast || !isDone || !edit) return;
+
     edit();
-  }, [currMessage, isLast]);
+  }, [isDone, isLast]);
 
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">

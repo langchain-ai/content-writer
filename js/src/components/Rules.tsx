@@ -42,14 +42,15 @@ export function Rules() {
     }
   }, []);
 
-  // if (!rules.length) return null;
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button onClick={() => setOpen(true)} className="fixed top-4 right-4">
-          Show Rules
-        </Button>
+      <DialogTrigger asChild>
+        <div
+          onClick={() => setOpen(true)}
+          className="fixed top-4 right-4 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-md shadow-sm transition-colors duration-200 cursor-pointer flex items-center space-x-2"
+        >
+          <p className="text-sm">Rules</p>
+        </div>
       </DialogTrigger>
       <DialogContent className="max-w-xl p-6 bg-white rounded-lg shadow-xl">
         <DialogHeader>
