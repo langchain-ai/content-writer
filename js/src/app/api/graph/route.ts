@@ -24,7 +24,10 @@ export async function POST(req: NextRequest) {
   });
   const graph = buildGraph(store);
 
-  const config = { configurable: { assistant_id: assistantId }, version: "v2" as const };
+  const config = {
+    configurable: { assistant_id: assistantId },
+    version: "v2" as const,
+  };
   const stream = graph.streamEvents({ messages, hasAcceptedText }, config);
 
   const encoder = new TextEncoder();

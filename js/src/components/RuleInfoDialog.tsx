@@ -25,8 +25,8 @@ export function RuleInfoDialog(props: RuleInfoDialogProps) {
         <div className="mt-6 space-y-4">
           <p className="text-base text-gray-700 leading-relaxed">
             Rule generation is a process where our AI powered agent learns to
-            create better tweets aligned with your preferences. It's triggered
-            in two ways:
+            create better tweets aligned with your preferences. It&apos;s
+            triggered in two ways:
           </p>
           <ul className="list-disc list-inside text-base text-gray-700 leading-relaxed pl-4">
             <li>When you copy an AI-generated tweet</li>
@@ -34,9 +34,9 @@ export function RuleInfoDialog(props: RuleInfoDialogProps) {
           </ul>
           <p className="text-base text-gray-700 leading-relaxed">
             Once triggered, the agent analyzes your conversation history and any
-            edits you've made to generate a set of rules. These rules are then
-            used to improve future tweet suggestions, ensuring they better match
-            your style and preferences.
+            edits you&apos;ve made to generate a set of rules. These rules are
+            then used to improve future tweet suggestions, ensuring they better
+            match your style and preferences.
           </p>
         </div>
         <div className="mt-8 flex justify-end">

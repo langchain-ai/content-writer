@@ -10,7 +10,7 @@ from langsmith import traceable
 
 
 class GraphState(MessagesState):
-    info: Annotated[dict, SharedValue.on("user_id")]
+    info: Annotated[dict, SharedValue.on("assistant_id")]
     userAcceptedText: bool
 
 
@@ -28,7 +28,6 @@ def call_model(state: GraphState) -> Dict[str, List[Dict[str, str]]]:
         rules = DEFAULT_RULES_STRING
     else:
         rules = state['info']['default']['rules']
-    rules = DEFAULT_RULES_STRING
 
     system_prompt = SYSTEM_PROMPT.format(userRules=rules)
 

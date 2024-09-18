@@ -39,7 +39,7 @@ export function WelcomeDialog() {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-primary">
-            Welcome to LangChain's Tweet Writer
+            Welcome to LangChain&apos;s Tweet Writer
           </DialogTitle>
           <DialogDescription className="mt-2 text-sm text-gray-600">
             Your intelligent companion for crafting engaging tweets
@@ -47,8 +47,8 @@ export function WelcomeDialog() {
         </DialogHeader>
         <div className="mt-4 space-y-4">
           <p className="text-sm text-gray-700">
-            LangChain's Tweet Writer learns from your interactions to help you
-            compose better tweets. It builds a personalized knowledge base
+            LangChain&apos;s Tweet Writer learns from your interactions to help
+            you compose better tweets. It builds a personalized knowledge base
             through two key actions:
           </p>
           <ul className="list-disc list-inside text-sm text-gray-700 space-y-2">
