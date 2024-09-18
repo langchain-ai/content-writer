@@ -217,10 +217,10 @@
   dependencies:
     uuid "^10.0.0"
 
-"@langchain/langgraph@^0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph/-/langgraph-0.2.4.tgz#cde23da248a4ba7b1b4ee7a09bf40650523e9690"
-  integrity sha512-E4mxblSiiMKoyZkbqa8USWgEu6zvdlOe7nje7pPAEcNS8uchKRxKA/ENYIAiSH/KZQJd63nw2tSC9e/AAySMLA==
+"@langchain/langgraph@^0.2.7":
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph/-/langgraph-0.2.7.tgz#7d21043f5fd9ba0a0f3aba7afb8fd0ace30e811f"
+  integrity sha512-iVfYbMHCkbC1OhOZ/MDH8pWBw4JzjTMqmen7lzvZo6c4tfxsjwsDfxzjAgR7Hw2b2yqmfuPiLdEU+f/0uPRJew==
   dependencies:
     "@langchain/langgraph-checkpoint" "~0.0.6"
     double-ended-queue "^2.1.0-0"
