@@ -55,7 +55,7 @@ export function ContentComposerChatInterface(
         content: message.content[0].text,
         id: uuidv4(),
       });
-      const currentConversation = [...allMessages, humanMessage];
+      const currentConversation = [...renderedMessages, humanMessage];
 
       setRenderedMessages(currentConversation);
       setAllMessages((prevMessages) => [...prevMessages, humanMessage]);
