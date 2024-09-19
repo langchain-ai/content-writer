@@ -42,19 +42,25 @@ const SYSTEM_RULES = [
 
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";
 
+const RULES_PROMPT = `The user has defined two sets of rules. The first set is for style guidelines, and the second set is for content guidelines.
+
+<style_rules>
+{styleRules}
+</style_rules>
+
+<content_rules>
+{contentRules}
+</content_rules>`;
+
 const SYSTEM_PROMPT = `You are a helpful assistant tasked with thoughtfully fulfilling the requests of the user.
 
 System rules:
 
-<systemrules>
+<system_rules>
 ${SYSTEM_RULES.map((rule) => ` - ${rule}`).join("\n")}
-</systemrules>
+</system_rules>
 
-User defined rules:
-
-<userrules>
-{userRules}
-</userrules>`;
+{rulesPrompt}`;
 
 const callModel = async (
   state: typeof GraphAnnotation.State,
@@ -65,12 +71,27 @@ const callModel = async (
     temperature: 0,
   });
 
-  let rules = DEFAULT_RULES_STRING;
-  if (state.userRules && state.userRules.rules?.length) {
-    rules = `- ${state.userRules.rules.join("\n - ")}`;
+  let styleRules: string | undefined;
+  let contentRules: string | undefined;
+  if (state.userRules) {
+    if (state.userRules.styleRules?.length) {
+      styleRules = `- ${state.userRules.styleRules.join("\n - ")}`;
+    }
+    if (state.userRules.contentRules?.length) {
+      contentRules = `- ${state.userRules.contentRules.join("\n - ")}`;
+    }
   }
 
-  const systemPrompt = SYSTEM_PROMPT.replace("{userRules}", rules);
+  let systemPrompt = SYSTEM_PROMPT;
+  if (styleRules || contentRules) {
+    systemPrompt
+      .replace("{rulesPrompt}", RULES_PROMPT)
+      .replace("{styleRules}", styleRules || DEFAULT_RULES_STRING)
+      .replace("{contentRules}", contentRules || DEFAULT_RULES_STRING);
+  } else {
+    systemPrompt.replace("{rulesPrompt}", "");
+  }
+
   const response = await model.invoke(
     [
       {
@@ -116,16 +137,25 @@ There also may be additional back and fourth between the user and the assistant.
 
 Based on the conversation, and paying particular attention to any changes made in the "REVISED MESSAGE", your job is to create a list of rules to use in the future to help the AI assistant better generate text.
 
+These rules should be split into two categories:
+1. Style guidelines: These rules should focus on the style, tone, and structure of the text.
+2. Content guidelines: These rules should focus on the content, context, and purpose of the text. Think of this as the business logic or domain-specific rules.
+
 In your response, include every single rule you want the AI assistant to follow in the future. You should list rules based on a combination of the existing conversation as well as previous rules.
 You can modify previous rules if you think the new conversation has helpful information, or you can delete old rules if they don't seem relevant, or you can add new rules based on the conversation.
 
-Refrain from adding overly generic rules like "follow instructions". Instead, focus your attention on specific details, writing style, or other aspects of the conversation that you think are important for the AI to follow.
+Refrain from adding overly generic rules like "follow instructions". These generic rules are already outlined in the "system_rules" below.
+Instead, focus your attention on specific details, writing style, or other aspects of the conversation that you think are important for the AI to follow.
 
 The user has defined the following rules:
 
-<userrules>
-{userRules}
-</userrules>
+<style_rules>
+{styleRules}
+</style_rules>
+
+<content_rules>
+{contentRules}
+</content_rules>
 
 Here is the conversation:
 
@@ -135,25 +165,39 @@ Here is the conversation:
 
 And here are the default system rules:
 
-<systemrules>
+<system_rules>
 ${SYSTEM_RULES.map((rule) => ` - ${rule}`).join("\n")}
-</systemrules>
+</system_rules>
 
 Respond with updated rules to keep in mind for future conversations. Try to keep the rules you list high signal-to-noise - don't include unnecessary ones, but make sure the ones you do add are descriptive. Combine ones that seem similar and/or contradictory`;
 
-  let rules = DEFAULT_RULES_STRING;
-  if (state.userRules && state.userRules.rules?.length) {
-    rules = `- ${state.userRules.rules.join("\n - ")}`;
+  let styleRules = DEFAULT_RULES_STRING;
+  let contentRules = DEFAULT_RULES_STRING;
+  if (state.userRules) {
+    if (state.userRules.styleRules?.length) {
+      styleRules = `- ${state.userRules.styleRules.join("\n - ")}`;
+    }
+    if (state.userRules.contentRules?.length) {
+      contentRules = `- ${state.userRules.contentRules.join("\n - ")}`;
+    }
   }
 
   const prompt = systemPrompt
-    .replace("{userRules}", rules)
+    .replace("{styleRules}", styleRules)
+    .replace("{contentRules}", contentRules)
     .replace("{conversation}", _prepareConversation(state.messages));
 
   const userRulesSchema = z.object({
-    rules: z
+    contentRules: z
       .array(z.string())
-      .describe("The rules which you have inferred from the conversation."),
+      .describe(
+        "List of rules focusing on content, context, and purpose of the text"
+      ),
+    styleRules: z
+      .array(z.string())
+      .describe(
+        "List of rules focusing on style, tone, and structure of the text"
+      ),
   });
 
   const modelWithStructuredOutput = new ChatAnthropic({
@@ -173,7 +217,7 @@ Respond with updated rules to keep in mind for future conversations. Try to keep
 
   return {
     userRules: {
-      rules: result.rules,
+      ...result,
     },
     userAcceptedText: false,
   };

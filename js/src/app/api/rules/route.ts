@@ -24,20 +24,22 @@ const vercelKvClient = () => {
 const buildGetRulesGraph = (store: VercelMemoryStore) => {
   const GraphAnnotation = Annotation.Root({
     userRules: SharedValue.on("assistant_id"),
-    rules: Annotation<string[]>(),
+    styleRules: Annotation<string[]>(),
+    contentRules: Annotation<string[]>(),
   });
 
   const getRules = (
     state: typeof GraphAnnotation.State
   ): Partial<typeof GraphAnnotation.State> => {
-    console.log("state", state);
-    if (!state.userRules || !state.userRules.rules) {
+    if (!state.userRules) {
       return {
-        rules: [],
+        contentRules: [],
+        styleRules: [],
       };
     }
     return {
-      rules: state.userRules.rules as string[],
+      contentRules: (state.userRules.contentRules as string[]) || [],
+      styleRules: (state.userRules.styleRules as string[]) || [],
     };
   };
 
