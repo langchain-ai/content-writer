@@ -25,8 +25,8 @@ export function SystemRulesEditable(props: SystemRulesEditableProps) {
     <div className="flex flex-col gap-4">
       <h3 className="text-xl font-light text-gray-800 mb-2">System Rules</h3>
       <p className="text-sm font-light text-gray-600 mb-4">
-        The agent has a set of &quot;system rules&quot; which are provided every time. You
-        can edit them below.
+        The agent has a set of &quot;system rules&quot; which are provided every
+        time. You can edit them below.
       </p>
       <form className="flex flex-col gap-4" onSubmit={handleSaveAndClose}>
         <Textarea

@@ -1,3 +1,8 @@
+// ---------------------------------------
+// WARNING
+// This API endpoint is no longer used. Instead, use the LangGraph Cloud endpoint.
+// ---------------------------------------
+
 import { buildGraph } from "@/agent";
 import { VercelMemoryStore } from "@/stores/vercel";
 import { createClient } from "@vercel/kv";

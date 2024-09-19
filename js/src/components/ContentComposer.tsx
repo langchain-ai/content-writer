@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   AppendMessage,
   AssistantRuntimeProvider,
@@ -8,8 +8,6 @@ import {
 } from "@assistant-ui/react";
 import { v4 as uuidv4 } from "uuid";
 import { MyThread } from "./Primitives";
-import { ASSISTANT_ID_COOKIE } from "@/constants";
-import { getCookie, setCookie } from "@/lib/cookies";
 import { processStream } from "@/lib/process_event";
 import { useExternalMessageConverter } from "@assistant-ui/react";
 import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
@@ -17,27 +15,31 @@ import {
   convertLangchainMessages,
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
-
-const initialMessages: any[] = [
-  // new HumanMessage("Hello, how are you?"),
-  // new AIMessage("I'm doing well, thank you for asking!"),
-];
+import { GraphInput } from "@/hooks/useGraph";
 
 export interface ContentComposerChatInterfaceProps {
-  assistantId: string;
   systemRules: string | undefined;
+  streamMessage: (params: GraphInput) => Promise<
+    AsyncGenerator<
+      {
+        event: string;
+        data: any;
+      },
+      any,
+      unknown
+    >
+  >;
+  sendMessage: (params: GraphInput) => Promise<Record<string, any>>;
 }
 
 export function ContentComposerChatInterface(
   props: ContentComposerChatInterfaceProps
 ): React.ReactElement {
-  const { assistantId } = props;
+  const { systemRules, streamMessage, sendMessage } = props;
   // Only messages which are rendered in the UI. This mainly excludes revised messages.
-  const [renderedMessages, setRenderedMessages] =
-    useState<BaseMessage[]>(initialMessages);
+  const [renderedMessages, setRenderedMessages] = useState<BaseMessage[]>([]);
   // Messages which contain revisions are not rendered.
-  const [allMessages, setAllMessages] =
-    useState<BaseMessage[]>(initialMessages);
+  const [allMessages, setAllMessages] = useState<BaseMessage[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   // Use this state field to determine whether or not to generate insights.
   const [contentGenerated, setContentGenerated] = useState(false);
@@ -58,18 +60,11 @@ export function ContentComposerChatInterface(
       setRenderedMessages(currentConversation);
       setAllMessages((prevMessages) => [...prevMessages, humanMessage]);
 
-      const response = await fetch("/api/graph", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: currentConversation.map(convertToOpenAIFormat),
-          assistantId,
-          hasAcceptedText: false,
-          contentGenerated,
-          systemRules: props.systemRules,
-        }),
+      const response = await streamMessage({
+        messages: currentConversation.map(convertToOpenAIFormat),
+        hasAcceptedText: false,
+        contentGenerated,
+        systemRules,
       });
 
       const fullMessage = await processStream(response, {
@@ -131,18 +126,11 @@ export function ContentComposerChatInterface(
     if (!contentGenerated) return;
 
     try {
-      await fetch("/api/graph", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: currentConversation.map(convertToOpenAIFormat),
-          assistantId,
-          hasAcceptedText: true,
-          contentGenerated: true,
-          systemRules: props.systemRules,
-        }),
+      await sendMessage({
+        messages: currentConversation.map(convertToOpenAIFormat),
+        hasAcceptedText: true,
+        contentGenerated: true,
+        systemRules,
       });
     } catch (error) {
       console.error("Error editing message:", error);
@@ -169,19 +157,11 @@ export function ContentComposerChatInterface(
           onCopy={async () => {
             // Do not generate insights if content hasn't been generated
             if (!contentGenerated) return;
-
-            await fetch("/api/graph", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                messages: allMessages.map(convertToOpenAIFormat),
-                assistantId,
-                hasAcceptedText: true,
-                contentGenerated: true,
-                systemRules: props.systemRules,
-              }),
+            await sendMessage({
+              messages: allMessages.map(convertToOpenAIFormat),
+              hasAcceptedText: true,
+              contentGenerated: true,
+              systemRules,
             });
           }}
         />

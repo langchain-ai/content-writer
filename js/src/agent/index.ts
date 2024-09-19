@@ -11,7 +11,8 @@ import { z } from "zod";
 import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { ChatAnthropic } from "@langchain/anthropic";
-import { DEFAULT_SYSTEM_RULES } from "@/constants";
+import { DEFAULT_SYSTEM_RULES } from "../constants";
+import { UserRules } from "@/hooks/useRules";
 
 const GraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
@@ -39,6 +40,14 @@ const GraphAnnotation = Annotation.Root({
     reducer: (_, next) => next,
     default: () => `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`,
   }),
+  /**
+   * The user rules defined in the shared value.
+   */
+  rules: Annotation<UserRules>(),
+  /**
+   * Whether or not to only get the rules.
+   */
+  onlyGetRules: Annotation<boolean>(),
 });
 
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";
@@ -85,7 +94,7 @@ const callModel = async (
 
   let systemPrompt = SYSTEM_PROMPT.replace("{systemRules}", state.systemRules);
   if (styleRules || contentRules) {
-    systemPrompt
+    systemPrompt = systemPrompt
       .replace("{rulesPrompt}", RULES_PROMPT)
       .replace("{styleRules}", styleRules || DEFAULT_RULES_STRING)
       .replace("{contentRules}", contentRules || DEFAULT_RULES_STRING);
@@ -273,6 +282,12 @@ const shouldCheckContentGeneration = (state: typeof GraphAnnotation.State) => {
   }
 };
 
+const getRules = (state: typeof GraphAnnotation.State) => {
+  return {
+    rules: state.userRules,
+  };
+};
+
 /**
  * Conditional edge which is always called first. This edge
  * determines whether or not revisions have been made, and if so,
@@ -280,7 +295,10 @@ const shouldCheckContentGeneration = (state: typeof GraphAnnotation.State) => {
  * @param {typeof GraphAnnotation.State} state The current state of the graph
  */
 const shouldGenerateInsights = (state: typeof GraphAnnotation.State) => {
-  const { hasAcceptedText } = state;
+  const { hasAcceptedText, onlyGetRules } = state;
+  if (onlyGetRules) {
+    return "getRules";
+  }
   if (hasAcceptedText) {
     // Greater than three means there was at least one followup message after the original AI Message.
     return "generateInsights";
@@ -293,6 +311,9 @@ export function buildGraph(store?: VercelMemoryStore) {
     .addNode("callModel", callModel)
     .addNode("generateInsights", generateInsights)
     .addNode("wasContentGenerated", wasContentGenerated)
+    // At this time there isn't a good way to fetch values from the store
+    // so instead we have a node which can return them.
+    .addNode("getRules", getRules)
     // Always start by checking whether or not to generate insights
     .addConditionalEdges(START, shouldGenerateInsights)
     // Always check if content was generated after calling the model
@@ -300,7 +321,8 @@ export function buildGraph(store?: VercelMemoryStore) {
     // No further action by the graph is necessary after either
     // generating a response via `callModel`, or rules via `generateInsights`.
     .addEdge("generateInsights", END)
-    .addEdge("wasContentGenerated", END);
+    .addEdge("wasContentGenerated", END)
+    .addEdge("getRules", END);
 
   return workflow.compile({
     store,

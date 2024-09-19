@@ -1,17 +1,21 @@
 "use client";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
-import { v4 as uuidv4 } from "uuid";
 import { useRules } from "@/hooks/useRules";
 import { Rules } from "@/components/RulesDialog";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
+import { useGraph } from "@/hooks/useGraph";
 
 export default function Home() {
-  const [assistantId, setAssistantId] = useState(
-    process.env.NEXT_PUBLIC_ASSISTANT_ID ?? ""
-  );
+  const {
+    createAssistant,
+    sendMessage,
+    streamMessage,
+    assistantId,
+    setAssistantId,
+  } = useGraph();
   const {
     setSystemRules,
     systemRules,
@@ -25,13 +29,23 @@ export default function Home() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (assistantId) return;
+    if (!process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID) {
+      throw new Error("Missing NEXT_PUBLIC_LANGGRAPH_GRAPH_ID");
+    }
 
     // The assistant ID can not be found in the env vars, so create a new one.
     const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
     if (!assistantIdCookie) {
-      const newUserId = uuidv4();
-      setCookie(ASSISTANT_ID_COOKIE, newUserId);
-      setAssistantId(newUserId);
+      createAssistant(process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID).then(
+        (assistant) => {
+          if (!assistant && !assistantId) {
+            throw new Error("Failed to create assistant");
+          }
+          if (!assistant) return;
+          const newAssistantId = assistant.assistant_id;
+          setCookie(ASSISTANT_ID_COOKIE, newAssistantId);
+        }
+      );
     } else {
       setAssistantId(assistantIdCookie);
     }
@@ -52,7 +66,8 @@ export default function Home() {
     <main className="h-screen">
       <ContentComposerChatInterface
         systemRules={systemRules}
-        assistantId={assistantId}
+        sendMessage={sendMessage}
+        streamMessage={streamMessage}
       />
       <WelcomeDialog
         setSystemRules={setSystemRules}

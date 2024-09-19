@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 export interface RuleInfoDialogProps {
   open: boolean;
@@ -34,8 +28,8 @@ export function RuleInfoDialog(props: RuleInfoDialogProps) {
           </ul>
           <p className="text-base text-gray-700 leading-relaxed mb-4">
             Once triggered, the agent analyzes your conversation history and any
-            edits you&apos;ve made to generate a set of rules. These rules fall into
-            two categories:
+            edits you&apos;ve made to generate a set of rules. These rules fall
+            into two categories:
           </p>
           <ol className="list-decimal list-inside text-base text-gray-700 leading-relaxed pl-4 mb-4">
             <li className="mb-2">
