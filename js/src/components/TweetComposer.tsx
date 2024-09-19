@@ -35,7 +35,7 @@ export function TweetComposer(): React.ReactElement {
     useState<BaseMessage[]>(initialMessages);
   const [isRunning, setIsRunning] = useState(false);
   // Use this state field to determine whether or not to generate insights.
-  const [tweetGenerated, setTweetGenerated] = useState(false);
+  const [contentGenerated, setContentGenerated] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
     if (message.content[0]?.type !== "text") {
@@ -62,14 +62,14 @@ export function TweetComposer(): React.ReactElement {
           messages: currentConversation.map(convertToOpenAIFormat),
           assistantId,
           hasAcceptedText: false,
-          tweetGenerated,
+          contentGenerated,
         }),
       });
 
       const fullMessage = await processStream(response, {
         setRenderedMessages,
-        setTweetGenerated,
-        tweetGenerated,
+        setContentGenerated,
+        contentGenerated,
       });
       setAllMessages((prevMessages) => [...prevMessages, fullMessage]);
     } catch (error) {
@@ -95,7 +95,7 @@ export function TweetComposer(): React.ReactElement {
       content: message.content[0].text,
       id: uuidv4(),
     });
-    const revisedMessage = new AIMessage({
+    const revisedMessage = new HumanMessage({
       id: newMessage.id,
       content: `REVISED MESSAGE:\n${newMessage.content}`,
     });
@@ -109,21 +109,20 @@ export function TweetComposer(): React.ReactElement {
       ...prevMessages.slice(indexOfMessage + 1),
     ]);
 
-    const currentConversation: BaseMessage[] = [];
+    const currentConversation: BaseMessage[] = [
+      ...allMessages.slice(0, indexOfMessage + 1),
+      revisedMessage,
+      ...allMessages.slice(indexOfMessage + 1),
+    ];
     // Insert the revised message directly after the original in the conversation history
-    setAllMessages((prevMessages) => {
-      const newMsgs = [
-        ...prevMessages.slice(0, indexOfMessage),
-        revisedMessage,
-        ...prevMessages.slice(indexOfMessage),
-      ];
-      // Update the current conversation with the all messages including the revised message
-      currentConversation.push(...newMsgs);
-      return newMsgs;
-    });
+    setAllMessages((prevMessages) => [
+      ...prevMessages.slice(0, indexOfMessage + 1),
+      revisedMessage,
+      ...prevMessages.slice(indexOfMessage + 1),
+    ]);
 
     // Do not generate insights if a tweet hasn't been generated
-    if (!tweetGenerated) return;
+    if (!contentGenerated) return;
 
     try {
       await fetch("/api/graph", {
@@ -135,7 +134,7 @@ export function TweetComposer(): React.ReactElement {
           messages: currentConversation.map(convertToOpenAIFormat),
           assistantId,
           hasAcceptedText: true,
-          tweetGenerated: true,
+          contentGenerated: true,
         }),
       });
     } catch (error) {
@@ -177,7 +176,7 @@ export function TweetComposer(): React.ReactElement {
         <MyThread
           onCopy={async () => {
             // Do not generate insights if a tweet hasn't been generated
-            if (!tweetGenerated) return;
+            if (!contentGenerated) return;
 
             await fetch("/api/graph", {
               method: "POST",
@@ -188,7 +187,7 @@ export function TweetComposer(): React.ReactElement {
                 messages: allMessages.map(convertToOpenAIFormat),
                 assistantId,
                 hasAcceptedText: true,
-                tweetGenerated: true,
+                contentGenerated: true,
               }),
             });
           }}

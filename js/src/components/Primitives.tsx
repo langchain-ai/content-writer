@@ -210,7 +210,7 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
     if (!isNew.current || !isLast || !isDone || !edit) return;
     const message = messageStore.getState().message;
     const lcMessage = getExternalStoreMessage<BaseMessage[]>(message)?.[0];
-    if (!lcMessage?.response_metadata.tweetGenerated) return;
+    if (!lcMessage?.response_metadata.contentGenerated) return;
 
     edit();
   }, [edit, isDone, isLast]);
