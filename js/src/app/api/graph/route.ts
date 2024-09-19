@@ -16,7 +16,7 @@ const vercelKvClient = () => {
 
 export async function POST(req: NextRequest) {
   const reqJson = await req.json();
-  const { messages, assistantId, hasAcceptedText } = reqJson;
+  const { messages, assistantId, hasAcceptedText, tweetGenerated } = reqJson;
 
   // Unlike in the studio, we need to pass a store here since it's not set by default.
   const store = new VercelMemoryStore({
@@ -28,7 +28,10 @@ export async function POST(req: NextRequest) {
     configurable: { assistant_id: assistantId },
     version: "v2" as const,
   };
-  const stream = graph.streamEvents({ messages, hasAcceptedText }, config);
+  const stream = graph.streamEvents(
+    { messages, hasAcceptedText, tweetGenerated },
+    config
+  );
 
   const encoder = new TextEncoder();
 

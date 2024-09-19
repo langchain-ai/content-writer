@@ -2,14 +2,17 @@
 
 import {
   ActionBarPrimitive,
+  AssistantMessageContentProps,
   ComposerPrimitive,
+  getExternalStoreMessage,
   MessagePrimitive,
   ThreadAssistantMessage,
   ThreadPrimitive,
   useActionBarEdit,
-  useMessageContext,
+  useMessage,
+  useMessageStore,
 } from "@assistant-ui/react";
-import { useEffect, useState, type FC } from "react";
+import { useCallback, useEffect, useRef, useState, type FC } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { RuleInfoDialog } from "./RuleInfoDialog";
+import { BaseMessage } from "@langchain/core/messages";
 
 export interface MyThreadProps extends MyAssistantMessageProps {}
 
@@ -42,8 +46,11 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
           components={{
             UserMessage: MyUserMessage,
             EditComposer: MyEditComposer,
-            AssistantMessage: (messageProps) => (
-              <MyAssistantMessage {...messageProps} onCopy={props.onCopy} />
+            AssistantMessage: useCallback(
+              (messageProps: AssistantMessageContentProps) => (
+                <MyAssistantMessage {...messageProps} onCopy={props.onCopy} />
+              ),
+              [props.onCopy]
             ),
           }}
         />
@@ -192,25 +199,21 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
   props: MyAssistantMessageProps
 ) => {
   const edit = useActionBarEdit();
-  const { useMessage, useEditComposer } = useMessageContext();
-  const currMessage = useMessage();
-  const isLast = currMessage.isLast;
-  const editComposer = useEditComposer();
+  const isDone = useMessage(
+    (m) => (m.message as ThreadAssistantMessage).status?.type !== "running"
+  );
+  const isNew = useRef(!isDone);
+  const isLast = useMessage((m) => m.isLast);
+  const messageStore = useMessageStore();
 
   useEffect(() => {
-    if (!isLast) {
-      editComposer.cancel();
-    }
-    const status = (currMessage.message as ThreadAssistantMessage).status;
-    const isDone = status.type !== "running";
-    if (!isDone) {
-      return;
-    }
-    if (!edit) {
-      return;
-    }
+    if (!isNew.current || !isLast || !isDone || !edit) return;
+    const message = messageStore.getState().message;
+    const lcMessage = getExternalStoreMessage<BaseMessage[]>(message)?.[0];
+    if (!lcMessage?.response_metadata.tweetGenerated) return;
+
     edit();
-  }, [currMessage, isLast]);
+  }, [edit, isDone, isLast]);
 
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">

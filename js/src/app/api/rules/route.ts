@@ -30,6 +30,7 @@ const buildGetRulesGraph = (store: VercelMemoryStore) => {
   const getRules = (
     state: typeof GraphAnnotation.State
   ): Partial<typeof GraphAnnotation.State> => {
+    console.log("state", state);
     if (!state.userRules || !state.userRules.rules) {
       return {
         rules: [],

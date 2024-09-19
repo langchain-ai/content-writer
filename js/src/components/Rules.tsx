@@ -42,14 +42,15 @@ export function Rules() {
     }
   }, []);
 
-  // if (!rules.length) return null;
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button onClick={() => setOpen(true)} className="fixed top-4 right-4">
-          Show Rules
-        </Button>
+      <DialogTrigger asChild>
+        <div
+          onClick={() => setOpen(true)}
+          className="fixed top-4 right-4 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-md shadow-sm transition-colors duration-200 cursor-pointer flex items-center space-x-2"
+        >
+          <p className="text-sm">Rules</p>
+        </div>
       </DialogTrigger>
       <DialogContent className="max-w-xl p-6 bg-white rounded-lg shadow-xl">
         <DialogHeader>
@@ -62,10 +63,12 @@ export function Rules() {
               : "No rules have been generated yet. Follow the steps below to generate rules."}
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-6">
+        <div className="mt-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
           {rules.length > 0 ? (
             <>
-              <h2 className="text-xl font-medium text-gray-700">Rules:</h2>
+              <h2 className="text-xl font-medium text-gray-700 sticky top-0 bg-white py-2">
+                Rules:
+              </h2>
               <ul className="mt-4 list-disc list-inside space-y-2">
                 {rules.map((rule, index) => (
                   <li key={index} className="text-gray-600">

@@ -18,9 +18,9 @@ import {
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
 
-const initialMessages = [
-  new HumanMessage("Hello, how are you?"),
-  new AIMessage("I'm doing well, thank you for asking!"),
+const initialMessages: any[] = [
+  // new HumanMessage("Hello, how are you?"),
+  // new AIMessage("I'm doing well, thank you for asking!"),
 ];
 
 export function TweetComposer(): React.ReactElement {
@@ -34,6 +34,8 @@ export function TweetComposer(): React.ReactElement {
   const [allMessages, setAllMessages] =
     useState<BaseMessage[]>(initialMessages);
   const [isRunning, setIsRunning] = useState(false);
+  // Use this state field to determine whether or not to generate insights.
+  const [tweetGenerated, setTweetGenerated] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
     if (message.content[0]?.type !== "text") {
@@ -60,10 +62,15 @@ export function TweetComposer(): React.ReactElement {
           messages: currentConversation.map(convertToOpenAIFormat),
           assistantId: userId,
           hasAcceptedText: false,
+          tweetGenerated,
         }),
       });
 
-      const fullMessage = await processStream(response, setRenderedMessages);
+      const fullMessage = await processStream(response, {
+        setRenderedMessages,
+        setTweetGenerated,
+        tweetGenerated,
+      });
       setAllMessages((prevMessages) => [...prevMessages, fullMessage]);
     } catch (error) {
       console.error("Error running message:", error);
@@ -115,6 +122,9 @@ export function TweetComposer(): React.ReactElement {
       return newMsgs;
     });
 
+    // Do not generate insights if a tweet hasn't been generated
+    if (!tweetGenerated) return;
+
     try {
       await fetch("/api/graph", {
         method: "POST",
@@ -125,6 +135,7 @@ export function TweetComposer(): React.ReactElement {
           messages: currentConversation.map(convertToOpenAIFormat),
           assistantId: userId,
           hasAcceptedText: true,
+          tweetGenerated: true,
         }),
       });
     } catch (error) {
@@ -164,6 +175,9 @@ export function TweetComposer(): React.ReactElement {
       <AssistantRuntimeProvider runtime={runtime}>
         <MyThread
           onCopy={async () => {
+            // Do not generate insights if a tweet hasn't been generated
+            if (!tweetGenerated) return;
+
             await fetch("/api/graph", {
               method: "POST",
               headers: {
@@ -173,6 +187,7 @@ export function TweetComposer(): React.ReactElement {
                 messages: allMessages.map(convertToOpenAIFormat),
                 assistantId: userId,
                 hasAcceptedText: true,
+                tweetGenerated: true,
               }),
             });
           }}
