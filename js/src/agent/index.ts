@@ -38,7 +38,7 @@ const SYSTEM_RULES = [
   "Be concise and avoid unnecessary information unless the user specifies otherwise.",
   "Maintain consistency in terminology and phrasing as per the user's revisions.",
   "Be mindful of the context and purpose of the text to ensure it aligns with the user's goals.",
-]
+];
 
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";
 
