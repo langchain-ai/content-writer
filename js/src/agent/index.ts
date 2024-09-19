@@ -11,7 +11,7 @@ import { z } from "zod";
 import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { ChatAnthropic } from "@langchain/anthropic";
-import { DEFAULT_SYSTEM_RULES } from "@/constants";
+import { DEFAULT_SYSTEM_RULES } from "../constants";
 
 const GraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,

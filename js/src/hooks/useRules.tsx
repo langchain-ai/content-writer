@@ -8,7 +8,7 @@ export interface UserRules {
 
 const DEFAULT_SYSTEM_RULES_STRING = `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`;
 
-export function useRules(assistantId: string) {
+export function useRules(assistantId: string | undefined) {
   const [systemRules, setSystemRules] = useState<string>();
   const [userRules, setUserRules] = useState<UserRules | undefined>();
   const [isLoadingSystemRules, setIsLoadingSystemRules] = useState(false);
