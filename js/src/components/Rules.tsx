@@ -40,7 +40,8 @@ export function Rules() {
     if (typeof window === "undefined") return;
     if (rules?.contentRules || rules?.styleRules) return;
 
-    const assistantId = process.env.NEXT_PUBLIC_ASSISTANT_ID ?? getCookie(ASSISTANT_ID_COOKIE);
+    const assistantId =
+      process.env.NEXT_PUBLIC_ASSISTANT_ID ?? getCookie(ASSISTANT_ID_COOKIE);
 
     if (assistantId) {
       void getRules(assistantId);

@@ -34,19 +34,23 @@ export function RuleInfoDialog(props: RuleInfoDialogProps) {
           </ul>
           <p className="text-base text-gray-700 leading-relaxed mb-4">
             Once triggered, the agent analyzes your conversation history and any
-            edits you've made to generate a set of rules. These rules fall into two categories:
+            edits you've made to generate a set of rules. These rules fall into
+            two categories:
           </p>
           <ol className="list-decimal list-inside text-base text-gray-700 leading-relaxed pl-4 mb-4">
             <li className="mb-2">
-              <span className="font-semibold">Content-based rules:</span> These define the core elements and topics to include in your tweets.
+              <span className="font-semibold">Content-based rules:</span> These
+              define the core elements and topics to include in your tweets.
             </li>
             <li className="mb-2">
-              <span className="font-semibold">Style-based rules:</span> These govern the tone, voice, and overall presentation of your tweets.
+              <span className="font-semibold">Style-based rules:</span> These
+              govern the tone, voice, and overall presentation of your tweets.
             </li>
           </ol>
           <p className="text-base text-gray-700 leading-relaxed">
-            By applying these rules, future tweet suggestions are refined to better
-            align with your unique style and preferences, ensuring a more personalized experience.
+            By applying these rules, future tweet suggestions are refined to
+            better align with your unique style and preferences, ensuring a more
+            personalized experience.
           </p>
         </div>
         <div className="mt-8 flex justify-end">

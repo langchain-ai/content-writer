@@ -24,7 +24,9 @@ const initialMessages: any[] = [
 ];
 
 export function TweetComposer(): React.ReactElement {
-  const [assistantId, setAssistantId] = useState(process.env.NEXT_PUBLIC_ASSISTANT_ID ?? "");
+  const [assistantId, setAssistantId] = useState(
+    process.env.NEXT_PUBLIC_ASSISTANT_ID ?? ""
+  );
   // Only messages which are rendered in the UI. This mainly excludes revised messages.
   const [renderedMessages, setRenderedMessages] =
     useState<BaseMessage[]>(initialMessages);
