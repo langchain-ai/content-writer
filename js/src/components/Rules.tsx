@@ -63,10 +63,10 @@ export function Rules() {
               : "No rules have been generated yet. Follow the steps below to generate rules."}
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-6">
+        <div className="mt-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
           {rules.length > 0 ? (
             <>
-              <h2 className="text-xl font-medium text-gray-700">Rules:</h2>
+              <h2 className="text-xl font-medium text-gray-700 sticky top-0 bg-white py-2">Rules:</h2>
               <ul className="mt-4 list-disc list-inside space-y-2">
                 {rules.map((rule, index) => (
                   <li key={index} className="text-gray-600">

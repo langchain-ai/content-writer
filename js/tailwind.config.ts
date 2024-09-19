@@ -67,7 +67,8 @@ const config: Config = {
     require("tailwindcss-animate"),
     require("@assistant-ui/react/tailwindcss")({
       components: ["thread"],
-    })
+    }),
+		require('tailwind-scrollbar'),
   ],
 };
 export default config;

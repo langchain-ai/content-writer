@@ -32,11 +32,29 @@ const GraphAnnotation = Annotation.Root({
   tweetGenerated: Annotation<boolean>(),
 });
 
+// Default rules always passed to the model.
+const SYSTEM_RULES = [
+  "Ensure the tone and style of the generated text matches the user's desired tone and style.",
+  "Be concise and avoid unnecessary information unless the user specifies otherwise.",
+  "Maintain consistency in terminology and phrasing as per the user's revisions.",
+  "Be mindful of the context and purpose of the text to ensure it aligns with the user's goals.",
+]
+
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";
 
 const SYSTEM_PROMPT = `You are a helpful assistant tasked with thoughtfully fulfilling the requests of the user.
+
+System rules:
+
+<systemrules>
+${SYSTEM_RULES.map((rule) => ` - ${rule}`).join("\n")}
+</systemrules>
+
 User defined rules:
-{userRules}`;
+
+<userrules>
+{userRules}
+</userrules>`;
 
 const callModel = async (
   state: typeof GraphAnnotation.State,
@@ -78,7 +96,7 @@ const _prepareConversation = (messages: BaseMessage[]): string => {
 /**
  * This node generates insights based on the changes, or followup messages
  * that have been made by the user. It does the following:
- * 1. Sets a system message describing the task, and existing user rules, and how messages in the history can be formatted. (e.g an AI Message, followed by a human message that is prefixed with "REVISION").
+ * 1. Sets a system message describing the task, and existing user rules, and how messages in the history can be formatted. (e.g an AI Message, followed by a human message that is prefixed with "REVISED MESSAGE").
  * 2. Passes the entire history to the LLM
  * 3. Uses `withStructuredOutput` to generate structured rules based on conversation or revisions.
  * 4. Updates the `userRules` shared value with the new rules.
@@ -92,15 +110,16 @@ const generateInsights = async (
 ) => {
   const systemPrompt = `This conversation contains back and fourth between an AI assistant, and a user who is using the assistant to generate text.
 
-User messages which are prefixed with "REVISION" contain the entire revised text the user made to the assistant message directly before in the conversation.
+User messages which are prefixed with "REVISED MESSAGE" contain the entire revised text the user made to the assistant message directly before in the conversation.
 
 There also may be additional back and fourth between the user and the assistant.
 
-Based on the conversation, and paying particular attention to any changes made in the "REVISION", your job is to create a list of rules to use in the future to help the AI assistant better generate text.
+Based on the conversation, and paying particular attention to any changes made in the "REVISED MESSAGE", your job is to create a list of rules to use in the future to help the AI assistant better generate text.
 
-In your response, include every single rule you want the AI assistant to follow in the future. You should list rules based on a combination of the existing conversation as well as previous rules. You can modify previous rules if you think the new conversation has helpful information, or you can delete old rules if they don't seem relevant, or you can add new rules based on the conversation.
+In your response, include every single rule you want the AI assistant to follow in the future. You should list rules based on a combination of the existing conversation as well as previous rules.
+You can modify previous rules if you think the new conversation has helpful information, or you can delete old rules if they don't seem relevant, or you can add new rules based on the conversation.
 
-Your entire response will be treated as the new rules, so don't include any preamble.
+Refrain from adding overly generic rules like "follow instructions". Instead, focus your attention on specific details, writing style, or other aspects of the conversation that you think are important for the AI to follow.
 
 The user has defined the following rules:
 
@@ -113,6 +132,12 @@ Here is the conversation:
 <conversation>
 {conversation}
 </conversation>
+
+And here are the default system rules:
+
+<systemrules>
+${SYSTEM_RULES.map((rule) => ` - ${rule}`).join("\n")}
+</systemrules>
 
 Respond with updated rules to keep in mind for future conversations. Try to keep the rules you list high signal-to-noise - don't include unnecessary ones, but make sure the ones you do add are descriptive. Combine ones that seem similar and/or contradictory`;
 
@@ -170,6 +195,7 @@ If a tweet was generated, set 'tweetGenerated' to true, otherwise set it to fals
         "Whether or not a tweet was generated in the conversation history."
       ),
   });
+  // TODO remove rules section to only include conversation.
   const formattedPrompt = prompt.replace(
     "{conversation}",
     _prepareConversation(messages)
