@@ -66,12 +66,11 @@ export function TweetComposer(): React.ReactElement {
         }),
       });
 
-      const fullMessage = await processStream(
-        response,
+      const fullMessage = await processStream(response, {
         setRenderedMessages,
+        setTweetGenerated,
         tweetGenerated,
-        setTweetGenerated
-      );
+      });
       setAllMessages((prevMessages) => [...prevMessages, fullMessage]);
     } catch (error) {
       console.error("Error running message:", error);

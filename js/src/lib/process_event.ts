@@ -67,10 +67,13 @@ function processWasTweetGeneratedToolCallEvent(
 
 export async function processStream(
   response: Response,
-  setRenderedMessages: (value: React.SetStateAction<BaseMessage[]>) => void,
-  tweetGenerated: boolean,
-  setTweetGenerated: (value: React.SetStateAction<boolean>) => void
+  extra: {
+    setRenderedMessages: (value: React.SetStateAction<BaseMessage[]>) => void;
+    tweetGenerated: boolean;
+    setTweetGenerated: (value: React.SetStateAction<boolean>) => void;
+  }
 ) {
+  const { setRenderedMessages, tweetGenerated, setTweetGenerated } = extra;
   const reader = response.body?.getReader();
   if (!reader) {
     throw new Error("No reader found in response body");
