@@ -8,7 +8,7 @@ import {
 } from "@assistant-ui/react";
 import { v4 as uuidv4 } from "uuid";
 import { MyThread } from "./Primitives";
-import { USER_ID_COOKIE } from "@/constants";
+import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { processStream } from "@/lib/process_event";
 import { useExternalMessageConverter } from "@assistant-ui/react";
@@ -24,9 +24,7 @@ const initialMessages: any[] = [
 ];
 
 export function TweetComposer(): React.ReactElement {
-  // Named userId, but passed as `assistantId` to the API.
-  // This field is ignored/unused when using a LangGraph cloud API.
-  const [userId, setUserId] = useState("");
+  const [assistantId, setAssistantId] = useState(process.env.NEXT_PUBLIC_ASSISTANT_ID ?? "");
   // Only messages which are rendered in the UI. This mainly excludes revised messages.
   const [renderedMessages, setRenderedMessages] =
     useState<BaseMessage[]>(initialMessages);
@@ -60,7 +58,7 @@ export function TweetComposer(): React.ReactElement {
         },
         body: JSON.stringify({
           messages: currentConversation.map(convertToOpenAIFormat),
-          assistantId: userId,
+          assistantId,
           hasAcceptedText: false,
           tweetGenerated,
         }),
@@ -133,7 +131,7 @@ export function TweetComposer(): React.ReactElement {
         },
         body: JSON.stringify({
           messages: currentConversation.map(convertToOpenAIFormat),
-          assistantId: userId,
+          assistantId,
           hasAcceptedText: true,
           tweetGenerated: true,
         }),
@@ -158,15 +156,16 @@ export function TweetComposer(): React.ReactElement {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (userId) return;
+    if (assistantId) return;
 
-    const userIdCookie = getCookie(USER_ID_COOKIE);
-    if (!userIdCookie) {
+    // The assistant ID can not be found in the env vars, so create a new one.
+    const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
+    if (!assistantIdCookie) {
       const newUserId = uuidv4();
-      setCookie(USER_ID_COOKIE, newUserId);
-      setUserId(newUserId);
+      setCookie(ASSISTANT_ID_COOKIE, newUserId);
+      setAssistantId(newUserId);
     } else {
-      setUserId(userIdCookie);
+      setAssistantId(assistantIdCookie);
     }
   }, []);
 
@@ -185,7 +184,7 @@ export function TweetComposer(): React.ReactElement {
               },
               body: JSON.stringify({
                 messages: allMessages.map(convertToOpenAIFormat),
-                assistantId: userId,
+                assistantId,
                 hasAcceptedText: true,
                 tweetGenerated: true,
               }),

@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { getCookie } from "@/lib/cookies";
-import { USER_ID_COOKIE } from "@/constants";
+import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { Button } from "./ui/button";
 
 export function Rules() {
@@ -20,17 +20,18 @@ export function Rules() {
     contentRules: string[];
   } | null>(null);
 
-  async function getRules(id: string) {
+  async function getRules(assistantId: string) {
     const response = await fetch("/api/rules", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ assistantId: id }),
+      body: JSON.stringify({ assistantId }),
     });
 
     const data = await response.json();
-    if (data.styleRules || data.contentRules) {
+    if (data?.styleRules?.length || data?.contentRules?.length) {
+      console.log("gots rules", data);
       setRules(data);
     }
   }
@@ -39,9 +40,10 @@ export function Rules() {
     if (typeof window === "undefined") return;
     if (rules?.contentRules || rules?.styleRules) return;
 
-    const userId = getCookie(USER_ID_COOKIE);
-    if (userId) {
-      void getRules(userId);
+    const assistantId = process.env.NEXT_PUBLIC_ASSISTANT_ID ?? getCookie(ASSISTANT_ID_COOKIE);
+
+    if (assistantId) {
+      void getRules(assistantId);
     }
   }, []);
 
@@ -66,7 +68,7 @@ export function Rules() {
               : "No rules have been generated yet. Follow the steps below to generate rules."}
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+        <div className="mt-4 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
           {rules ? (
             <>
               {rules.styleRules.length > 0 && (

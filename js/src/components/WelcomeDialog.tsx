@@ -52,8 +52,8 @@ export function WelcomeDialog() {
             through two key actions:
           </p>
           <ul className="list-disc list-inside text-sm text-gray-700 space-y-2">
-            <li>When you copy an AI-generated tweet</li>
-            <li>When you edit and save an AI-suggested tweet</li>
+            <li>When you copy any AI-generated message</li>
+            <li>When you edit and save any AI-generated message</li>
           </ul>
           <p className="text-sm text-gray-700">
             The more you interact, the smarter and more tailored your experience
