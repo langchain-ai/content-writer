@@ -11,6 +11,7 @@ import { z } from "zod";
 import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { ChatAnthropic } from "@langchain/anthropic";
+import { DEFAULT_SYSTEM_RULES } from "@/constants";
 
 const GraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
@@ -26,35 +27,41 @@ const GraphAnnotation = Annotation.Root({
    */
   hasAcceptedText: Annotation<boolean>(),
   /**
-   * Whether or not a tweet was generated in the conversation.
+   * Whether or not writing content was generated in the conversation.
    * @TODO once switched to use LangGraph API, make this a SharedValue which depends on the 'thread_id' so it only persists for the current thread.
    */
-  tweetGenerated: Annotation<boolean>(),
+  contentGenerated: Annotation<boolean>(),
+  /**
+   * The system rules to always include when generating responses.
+   * This is editable by the user.
+   */
+  systemRules: Annotation<string>({
+    reducer: (_, next) => next,
+    default: () => `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`,
+  }),
 });
 
-// Default rules always passed to the model.
-const SYSTEM_RULES = [
-  "Ensure the tone and style of the generated text matches the user's desired tone and style.",
-  "Be concise and avoid unnecessary information unless the user specifies otherwise.",
-  "Maintain consistency in terminology and phrasing as per the user's revisions.",
-  "Be mindful of the context and purpose of the text to ensure it aligns with the user's goals.",
-];
-
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";
+
+const RULES_PROMPT = `The user has defined two sets of rules. The first set is for style guidelines, and the second set is for content guidelines.
+
+<style_rules>
+{styleRules}
+</style_rules>
+
+<content_rules>
+{contentRules}
+</content_rules>`;
 
 const SYSTEM_PROMPT = `You are a helpful assistant tasked with thoughtfully fulfilling the requests of the user.
 
 System rules:
 
-<systemrules>
-${SYSTEM_RULES.map((rule) => ` - ${rule}`).join("\n")}
-</systemrules>
+<system_rules>
+{systemRules}
+</system_rules>
 
-User defined rules:
-
-<userrules>
-{userRules}
-</userrules>`;
+{rulesPrompt}`;
 
 const callModel = async (
   state: typeof GraphAnnotation.State,
@@ -65,12 +72,27 @@ const callModel = async (
     temperature: 0,
   });
 
-  let rules = DEFAULT_RULES_STRING;
-  if (state.userRules && state.userRules.rules?.length) {
-    rules = `- ${state.userRules.rules.join("\n - ")}`;
+  let styleRules: string | undefined;
+  let contentRules: string | undefined;
+  if (state.userRules) {
+    if (state.userRules.styleRules?.length) {
+      styleRules = `- ${state.userRules.styleRules.join("\n - ")}`;
+    }
+    if (state.userRules.contentRules?.length) {
+      contentRules = `- ${state.userRules.contentRules.join("\n - ")}`;
+    }
   }
 
-  const systemPrompt = SYSTEM_PROMPT.replace("{userRules}", rules);
+  let systemPrompt = SYSTEM_PROMPT.replace("{systemRules}", state.systemRules);
+  if (styleRules || contentRules) {
+    systemPrompt
+      .replace("{rulesPrompt}", RULES_PROMPT)
+      .replace("{styleRules}", styleRules || DEFAULT_RULES_STRING)
+      .replace("{contentRules}", contentRules || DEFAULT_RULES_STRING);
+  } else {
+    systemPrompt.replace("{rulesPrompt}", "");
+  }
+
   const response = await model.invoke(
     [
       {
@@ -86,11 +108,11 @@ const callModel = async (
 
 const _prepareConversation = (messages: BaseMessage[]): string => {
   return messages
-    .map((msg) => {
+    .map((msg, i) => {
       if (typeof msg.content !== "string") return "";
-      return `${msg._getType()}: ${msg.content}`;
+      return `<${msg._getType()}_message index={${i}}>\n${msg.content}\n</${msg._getType()}_message>`;
     })
-    .join("\n");
+    .join("\n\n");
 };
 
 /**
@@ -111,21 +133,36 @@ const generateInsights = async (
   const systemPrompt = `This conversation contains back and fourth between an AI assistant, and a user who is using the assistant to generate text.
 
 User messages which are prefixed with "REVISED MESSAGE" contain the entire revised text the user made to the assistant message directly before in the conversation.
+Revisions are made directly by users, so you should pay VERY close attention to every single change made, no matter how small. These should be heavily considered when generating rules.
+
+Important aspects of revisions to consider:
+- Deletions: What did the user remove? Do you need a rule to avoid adding this in the future?
+- Tone: Did they change the overall tone? Do you need a rule to ensure this tone is maintained?
+- Structure: Did they change the structure of the text? This is important to remember, as it may be a common pattern. 
 
 There also may be additional back and fourth between the user and the assistant.
 
 Based on the conversation, and paying particular attention to any changes made in the "REVISED MESSAGE", your job is to create a list of rules to use in the future to help the AI assistant better generate text.
 
+These rules should be split into two categories:
+1. Style guidelines: These rules should focus on the style, tone, and structure of the text.
+2. Content guidelines: These rules should focus on the content, context, and purpose of the text. Think of this as the business logic or domain-specific rules.
+
 In your response, include every single rule you want the AI assistant to follow in the future. You should list rules based on a combination of the existing conversation as well as previous rules.
 You can modify previous rules if you think the new conversation has helpful information, or you can delete old rules if they don't seem relevant, or you can add new rules based on the conversation.
 
-Refrain from adding overly generic rules like "follow instructions". Instead, focus your attention on specific details, writing style, or other aspects of the conversation that you think are important for the AI to follow.
+Refrain from adding overly generic rules like "follow instructions". These generic rules are already outlined in the "system_rules" below.
+Instead, focus your attention on specific details, writing style, or other aspects of the conversation that you think are important for the AI to follow.
 
 The user has defined the following rules:
 
-<userrules>
-{userRules}
-</userrules>
+<style_rules>
+{styleRules}
+</style_rules>
+
+<content_rules>
+{contentRules}
+</content_rules>
 
 Here is the conversation:
 
@@ -135,25 +172,40 @@ Here is the conversation:
 
 And here are the default system rules:
 
-<systemrules>
-${SYSTEM_RULES.map((rule) => ` - ${rule}`).join("\n")}
-</systemrules>
+<system_rules>
+{systemRules}
+</system_rules>
 
 Respond with updated rules to keep in mind for future conversations. Try to keep the rules you list high signal-to-noise - don't include unnecessary ones, but make sure the ones you do add are descriptive. Combine ones that seem similar and/or contradictory`;
 
-  let rules = DEFAULT_RULES_STRING;
-  if (state.userRules && state.userRules.rules?.length) {
-    rules = `- ${state.userRules.rules.join("\n - ")}`;
+  let styleRules = DEFAULT_RULES_STRING;
+  let contentRules = DEFAULT_RULES_STRING;
+  if (state.userRules) {
+    if (state.userRules.styleRules?.length) {
+      styleRules = `- ${state.userRules.styleRules.join("\n - ")}`;
+    }
+    if (state.userRules.contentRules?.length) {
+      contentRules = `- ${state.userRules.contentRules.join("\n - ")}`;
+    }
   }
 
   const prompt = systemPrompt
-    .replace("{userRules}", rules)
+    .replace("{systemRules}", state.systemRules)
+    .replace("{styleRules}", styleRules)
+    .replace("{contentRules}", contentRules)
     .replace("{conversation}", _prepareConversation(state.messages));
 
   const userRulesSchema = z.object({
-    rules: z
+    contentRules: z
       .array(z.string())
-      .describe("The rules which you have inferred from the conversation."),
+      .describe(
+        "List of rules focusing on content, context, and purpose of the text"
+      ),
+    styleRules: z
+      .array(z.string())
+      .describe(
+        "List of rules focusing on style, tone, and structure of the text"
+      ),
   });
 
   const modelWithStructuredOutput = new ChatAnthropic({
@@ -173,26 +225,26 @@ Respond with updated rules to keep in mind for future conversations. Try to keep
 
   return {
     userRules: {
-      rules: result.rules,
+      ...result,
     },
     userAcceptedText: false,
   };
 };
 
-const wasTweetGenerated = async (state: typeof GraphAnnotation.State) => {
+const wasContentGenerated = async (state: typeof GraphAnnotation.State) => {
   const { messages } = state;
 
-  const prompt = `Given the following conversation between a user and an AI assistant, determine whether or not a tweet was generated by the assistant.
-If a tweet was generated, set 'tweetGenerated' to true, otherwise set it to false.
+  const prompt = `Given the following conversation between a user and an AI assistant, determine whether or not writing content (think, a blog post, or tweet) was generated by the assistant, or if it's just a conversation.
+If writing content was generated, set 'contentGenerated' to true, otherwise set it to false.
 
 <conversation>
 {conversation}
 </conversation>`;
   const schema = z.object({
-    tweetGenerated: z
+    contentGenerated: z
       .boolean()
       .describe(
-        "Whether or not a tweet was generated in the conversation history."
+        "Whether or not content (e.g a tweet, or blog post) was generated in the conversation history."
       ),
   });
   // TODO remove rules section to only include conversation.
@@ -203,7 +255,7 @@ If a tweet was generated, set 'tweetGenerated' to true, otherwise set it to fals
   const model = new ChatAnthropic({
     model: "claude-3-haiku-20240307",
     temperature: 0,
-  }).withStructuredOutput(schema, { name: "was_tweet_generated" });
+  }).withStructuredOutput(schema, { name: "was_content_generated" });
 
   return model.invoke([
     {
@@ -213,11 +265,11 @@ If a tweet was generated, set 'tweetGenerated' to true, otherwise set it to fals
   ]);
 };
 
-const shouldCheckTweetGeneration = (state: typeof GraphAnnotation.State) => {
-  if (state.tweetGenerated) {
+const shouldCheckContentGeneration = (state: typeof GraphAnnotation.State) => {
+  if (state.contentGenerated) {
     return END;
   } else {
-    return "wasTweetGenerated";
+    return "wasContentGenerated";
   }
 };
 
@@ -240,15 +292,15 @@ export function buildGraph(store?: VercelMemoryStore) {
   const workflow = new StateGraph(GraphAnnotation)
     .addNode("callModel", callModel)
     .addNode("generateInsights", generateInsights)
-    .addNode("wasTweetGenerated", wasTweetGenerated)
+    .addNode("wasContentGenerated", wasContentGenerated)
     // Always start by checking whether or not to generate insights
     .addConditionalEdges(START, shouldGenerateInsights)
-    // Always check if a tweet was generated after calling the model
-    .addConditionalEdges("callModel", shouldCheckTweetGeneration)
+    // Always check if content was generated after calling the model
+    .addConditionalEdges("callModel", shouldCheckContentGeneration)
     // No further action by the graph is necessary after either
     // generating a response via `callModel`, or rules via `generateInsights`.
     .addEdge("generateInsights", END)
-    .addEdge("wasTweetGenerated", END);
+    .addEdge("wasContentGenerated", END);
 
   return workflow.compile({
     store,

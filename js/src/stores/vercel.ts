@@ -1,5 +1,5 @@
 import { BaseStore, type Values } from "@langchain/langgraph";
-import { kv, type VercelKV } from "@vercel/kv";
+import { createClient, kv, type VercelKV } from "@vercel/kv";
 
 export class VercelMemoryStore extends BaseStore {
   protected client: VercelKV;
@@ -46,4 +46,17 @@ export class VercelMemoryStore extends BaseStore {
 
     await pipeline.exec();
   }
+}
+
+export function initVercelStore() {
+  if (!process.env.KV_REST_API_TOKEN || !process.env.KV_REST_API_URL) {
+    throw new Error("Missing Vercel token or URL environment");
+  }
+
+  return new VercelMemoryStore({
+    client: createClient({
+      token: process.env.KV_REST_API_TOKEN,
+      url: process.env.KV_REST_API_URL,
+    }),
+  });
 }

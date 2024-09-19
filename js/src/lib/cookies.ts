@@ -7,9 +7,16 @@ export const getCookie = (name: string): string | undefined => {
   return Cookies.get(name);
 };
 
-export const setCookie = (name: string, value: string): void => {
+export const setCookie = (
+  name: string,
+  value: string,
+  options?: Cookies.CookieAttributes
+): void => {
   if (typeof window === "undefined") {
     return;
   }
-  Cookies.set(name, value);
+  Cookies.set(name, value, {
+    expires: 365, // Default to 1 year expiration
+    ...(options || {}),
+  });
 };

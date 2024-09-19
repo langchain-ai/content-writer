@@ -10,8 +10,23 @@ import {
 } from "./ui/dialog";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { HAS_SEEN_DIALOG } from "@/constants";
+import { SystemRulesEditable } from "./SystemRulesEditable";
+import { Button } from "./ui/button";
 
-export function WelcomeDialog() {
+export interface WelcomeDialogProps {
+  isLoadingSystemRules: boolean;
+  systemRules: string | undefined;
+  setSystemRulesAndSave: (newSystemRules: string) => Promise<void>;
+  setSystemRules: (newSystemRules: string) => void;
+}
+
+export function WelcomeDialog(props: WelcomeDialogProps) {
+  const {
+    isLoadingSystemRules,
+    systemRules,
+    setSystemRulesAndSave,
+    setSystemRules,
+  } = props;
   const [open, setOpen] = useState(false);
 
   const handleClose = (open: boolean) => {
@@ -21,6 +36,7 @@ export function WelcomeDialog() {
       }
     }
     setOpen(open);
+    void setSystemRulesAndSave(systemRules ?? "");
   };
 
   useEffect(() => {
@@ -36,37 +52,40 @@ export function WelcomeDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl p-8 bg-white rounded-lg shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-primary">
-            Welcome to LangChain&apos;s Tweet Writer
+          <DialogTitle className="text-3xl font-light text-gray-800">
+            Welcome to LangChain&apos;s Content Writer
           </DialogTitle>
-          <DialogDescription className="mt-2 text-sm text-gray-600">
-            Your intelligent companion for crafting engaging tweets
+          <DialogDescription className="mt-2 text-md font-light text-gray-600">
+            Your intelligent companion for crafting engaging content
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4 space-y-4">
-          <p className="text-sm text-gray-700">
-            LangChain&apos;s Tweet Writer learns from your interactions to help
-            you compose better tweets. It builds a personalized knowledge base
-            through two key actions:
+        <div className="mt-6 space-y-6">
+          <p className="text-sm font-light text-gray-700">
+            LangChain&apos;s Content Writer learns from your interactions to
+            help you compose better content. It builds a personalized knowledge
+            base through two key actions:
           </p>
-          <ul className="list-disc list-inside text-sm text-gray-700 space-y-2">
-            <li>When you copy an AI-generated tweet</li>
-            <li>When you edit and save an AI-suggested tweet</li>
+          <ul className="list-disc list-inside text-sm font-light text-gray-700 space-y-2">
+            <li>When you copy any AI-generated message</li>
+            <li>When you edit and save any AI-generated message</li>
           </ul>
-          <p className="text-sm text-gray-700">
-            The more you interact, the smarter and more tailored your experience
-            becomes!
+          <p className="text-sm font-light text-gray-700">
+            When these actions are performed, the agent will generate rules
+            based on your feedback and the content generated.
           </p>
+          {!isLoadingSystemRules && systemRules && (
+            <SystemRulesEditable
+              setOpen={setOpen}
+              setSystemRulesAndSave={setSystemRulesAndSave}
+              systemRules={systemRules}
+              setSystemRules={setSystemRules}
+            />
+          )}
         </div>
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={() => handleClose(false)}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-          >
-            Get Started
-          </button>
+        <div className="mt-8 flex justify-end">
+          <Button onClick={() => handleClose(false)}>Get Started</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -86,7 +86,7 @@ const MyThreadWelcome: FC = () => {
           <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
           <AvatarFallback>LC</AvatarFallback>
         </Avatar>
-        <p className="mt-4 font-medium">What would you like to Tweet today?</p>
+        <p className="mt-4 font-medium">What would you like to write today?</p>
       </div>
     </ThreadPrimitive.Empty>
   );
@@ -210,7 +210,7 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
     if (!isNew.current || !isLast || !isDone || !edit) return;
     const message = messageStore.getState().message;
     const lcMessage = getExternalStoreMessage<BaseMessage[]>(message)?.[0];
-    if (!lcMessage?.response_metadata.tweetGenerated) return;
+    if (!lcMessage?.response_metadata.contentGenerated) return;
 
     edit();
   }, [edit, isDone, isLast]);

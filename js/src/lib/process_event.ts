@@ -21,8 +21,8 @@ const isChatModelEnd = (streamEvent: StreamEvent): boolean => {
   );
 };
 
-const isWasTweetGeneratedNode = (streamEvent: StreamEvent): boolean => {
-  return streamEvent.metadata.langgraph_node === "wasTweetGenerated";
+const isWasContentGeneratedNode = (streamEvent: StreamEvent): boolean => {
+  return streamEvent.metadata.langgraph_node === "wasContentGenerated";
 };
 
 const isCallModelNode = (streamEvent: StreamEvent): boolean => {
@@ -52,13 +52,13 @@ function processCallModelStreamEvent(
   return undefined;
 }
 
-function processWasTweetGeneratedToolCallEvent(
+function processWasContentGeneratedToolCallEvent(
   streamEvent: StreamEvent
 ): ToolCall | undefined {
   if (
     isChatModelEnd(streamEvent) &&
     streamEndHasToolCall(streamEvent) &&
-    isWasTweetGeneratedNode(streamEvent)
+    isWasContentGeneratedNode(streamEvent)
   ) {
     return streamEvent.data.output.kwargs.tool_calls[0];
   }
@@ -69,11 +69,11 @@ export async function processStream(
   response: Response,
   extra: {
     setRenderedMessages: (value: React.SetStateAction<BaseMessage[]>) => void;
-    tweetGenerated: boolean;
-    setTweetGenerated: (value: React.SetStateAction<boolean>) => void;
+    contentGenerated: boolean;
+    setContentGenerated: (value: React.SetStateAction<boolean>) => void;
   }
 ) {
-  const { setRenderedMessages, tweetGenerated, setTweetGenerated } = extra;
+  const { setRenderedMessages, contentGenerated, setContentGenerated } = extra;
   const reader = response.body?.getReader();
   if (!reader) {
     throw new Error("No reader found in response body");
@@ -100,10 +100,10 @@ export async function processStream(
           }
 
           const newText = processCallModelStreamEvent(streamEvent);
-          const toolCall = processWasTweetGeneratedToolCallEvent(streamEvent);
-          const wasTweetGenerated =
-            toolCall && toolCall.name === "was_tweet_generated"
-              ? toolCall.args.tweetGenerated
+          const toolCall = processWasContentGeneratedToolCallEvent(streamEvent);
+          const wasContentGenerated =
+            toolCall && toolCall.name === "was_content_generated"
+              ? toolCall.args.contentGenerated
               : false;
 
           if (newText) {
@@ -111,13 +111,13 @@ export async function processStream(
               id: fullMessage.id,
               content: fullMessage.content + newText,
             });
-          } else if (wasTweetGenerated || tweetGenerated) {
-            setTweetGenerated(true);
+          } else if (wasContentGenerated || contentGenerated) {
+            setContentGenerated(true);
             fullMessage = new AIMessage({
               id: fullMessage.id,
               content: fullMessage.content,
               response_metadata: {
-                tweetGenerated: true,
+                contentGenerated: true,
               },
             });
           }

@@ -8,7 +8,7 @@ import {
 } from "@assistant-ui/react";
 import { v4 as uuidv4 } from "uuid";
 import { MyThread } from "./Primitives";
-import { USER_ID_COOKIE } from "@/constants";
+import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { processStream } from "@/lib/process_event";
 import { useExternalMessageConverter } from "@assistant-ui/react";
@@ -23,10 +23,15 @@ const initialMessages: any[] = [
   // new AIMessage("I'm doing well, thank you for asking!"),
 ];
 
-export function TweetComposer(): React.ReactElement {
-  // Named userId, but passed as `assistantId` to the API.
-  // This field is ignored/unused when using a LangGraph cloud API.
-  const [userId, setUserId] = useState("");
+export interface ContentComposerChatInterfaceProps {
+  assistantId: string;
+  systemRules: string | undefined;
+}
+
+export function ContentComposerChatInterface(
+  props: ContentComposerChatInterfaceProps
+): React.ReactElement {
+  const { assistantId } = props;
   // Only messages which are rendered in the UI. This mainly excludes revised messages.
   const [renderedMessages, setRenderedMessages] =
     useState<BaseMessage[]>(initialMessages);
@@ -35,7 +40,7 @@ export function TweetComposer(): React.ReactElement {
     useState<BaseMessage[]>(initialMessages);
   const [isRunning, setIsRunning] = useState(false);
   // Use this state field to determine whether or not to generate insights.
-  const [tweetGenerated, setTweetGenerated] = useState(false);
+  const [contentGenerated, setContentGenerated] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
     if (message.content[0]?.type !== "text") {
@@ -60,16 +65,17 @@ export function TweetComposer(): React.ReactElement {
         },
         body: JSON.stringify({
           messages: currentConversation.map(convertToOpenAIFormat),
-          assistantId: userId,
+          assistantId,
           hasAcceptedText: false,
-          tweetGenerated,
+          contentGenerated,
+          systemRules: props.systemRules,
         }),
       });
 
       const fullMessage = await processStream(response, {
         setRenderedMessages,
-        setTweetGenerated,
-        tweetGenerated,
+        setContentGenerated,
+        contentGenerated,
       });
       setAllMessages((prevMessages) => [...prevMessages, fullMessage]);
     } catch (error) {
@@ -95,7 +101,7 @@ export function TweetComposer(): React.ReactElement {
       content: message.content[0].text,
       id: uuidv4(),
     });
-    const revisedMessage = new AIMessage({
+    const revisedMessage = new HumanMessage({
       id: newMessage.id,
       content: `REVISED MESSAGE:\n${newMessage.content}`,
     });
@@ -109,21 +115,20 @@ export function TweetComposer(): React.ReactElement {
       ...prevMessages.slice(indexOfMessage + 1),
     ]);
 
-    const currentConversation: BaseMessage[] = [];
+    const currentConversation: BaseMessage[] = [
+      ...allMessages.slice(0, indexOfMessage + 1),
+      revisedMessage,
+      ...allMessages.slice(indexOfMessage + 1),
+    ];
     // Insert the revised message directly after the original in the conversation history
-    setAllMessages((prevMessages) => {
-      const newMsgs = [
-        ...prevMessages.slice(0, indexOfMessage),
-        revisedMessage,
-        ...prevMessages.slice(indexOfMessage),
-      ];
-      // Update the current conversation with the all messages including the revised message
-      currentConversation.push(...newMsgs);
-      return newMsgs;
-    });
+    setAllMessages((prevMessages) => [
+      ...prevMessages.slice(0, indexOfMessage + 1),
+      revisedMessage,
+      ...prevMessages.slice(indexOfMessage + 1),
+    ]);
 
-    // Do not generate insights if a tweet hasn't been generated
-    if (!tweetGenerated) return;
+    // Do not generate insights if content hasn't been generated
+    if (!contentGenerated) return;
 
     try {
       await fetch("/api/graph", {
@@ -133,9 +138,10 @@ export function TweetComposer(): React.ReactElement {
         },
         body: JSON.stringify({
           messages: currentConversation.map(convertToOpenAIFormat),
-          assistantId: userId,
+          assistantId,
           hasAcceptedText: true,
-          tweetGenerated: true,
+          contentGenerated: true,
+          systemRules: props.systemRules,
         }),
       });
     } catch (error) {
@@ -156,27 +162,13 @@ export function TweetComposer(): React.ReactElement {
     onEdit,
   });
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (userId) return;
-
-    const userIdCookie = getCookie(USER_ID_COOKIE);
-    if (!userIdCookie) {
-      const newUserId = uuidv4();
-      setCookie(USER_ID_COOKIE, newUserId);
-      setUserId(newUserId);
-    } else {
-      setUserId(userIdCookie);
-    }
-  }, []);
-
   return (
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <MyThread
           onCopy={async () => {
-            // Do not generate insights if a tweet hasn't been generated
-            if (!tweetGenerated) return;
+            // Do not generate insights if content hasn't been generated
+            if (!contentGenerated) return;
 
             await fetch("/api/graph", {
               method: "POST",
@@ -185,9 +177,10 @@ export function TweetComposer(): React.ReactElement {
               },
               body: JSON.stringify({
                 messages: allMessages.map(convertToOpenAIFormat),
-                assistantId: userId,
+                assistantId,
                 hasAcceptedText: true,
-                tweetGenerated: true,
+                contentGenerated: true,
+                systemRules: props.systemRules,
               }),
             });
           }}
