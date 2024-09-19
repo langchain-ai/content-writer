@@ -23,10 +23,15 @@ const initialMessages: any[] = [
   // new AIMessage("I'm doing well, thank you for asking!"),
 ];
 
-export function TweetComposer(): React.ReactElement {
-  const [assistantId, setAssistantId] = useState(
-    process.env.NEXT_PUBLIC_ASSISTANT_ID ?? ""
-  );
+export interface ContentComposerChatInterfaceProps {
+  assistantId: string;
+  systemRules: string | undefined;
+}
+
+export function ContentComposerChatInterface(
+  props: ContentComposerChatInterfaceProps
+): React.ReactElement {
+  const { assistantId } = props;
   // Only messages which are rendered in the UI. This mainly excludes revised messages.
   const [renderedMessages, setRenderedMessages] =
     useState<BaseMessage[]>(initialMessages);
@@ -63,6 +68,7 @@ export function TweetComposer(): React.ReactElement {
           assistantId,
           hasAcceptedText: false,
           contentGenerated,
+          systemRules: props.systemRules,
         }),
       });
 
@@ -121,7 +127,7 @@ export function TweetComposer(): React.ReactElement {
       ...prevMessages.slice(indexOfMessage + 1),
     ]);
 
-    // Do not generate insights if a tweet hasn't been generated
+    // Do not generate insights if content hasn't been generated
     if (!contentGenerated) return;
 
     try {
@@ -135,6 +141,7 @@ export function TweetComposer(): React.ReactElement {
           assistantId,
           hasAcceptedText: true,
           contentGenerated: true,
+          systemRules: props.systemRules,
         }),
       });
     } catch (error) {
@@ -155,27 +162,12 @@ export function TweetComposer(): React.ReactElement {
     onEdit,
   });
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (assistantId) return;
-
-    // The assistant ID can not be found in the env vars, so create a new one.
-    const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
-    if (!assistantIdCookie) {
-      const newUserId = uuidv4();
-      setCookie(ASSISTANT_ID_COOKIE, newUserId);
-      setAssistantId(newUserId);
-    } else {
-      setAssistantId(assistantIdCookie);
-    }
-  }, []);
-
   return (
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <MyThread
           onCopy={async () => {
-            // Do not generate insights if a tweet hasn't been generated
+            // Do not generate insights if content hasn't been generated
             if (!contentGenerated) return;
 
             await fetch("/api/graph", {
@@ -188,6 +180,7 @@ export function TweetComposer(): React.ReactElement {
                 assistantId,
                 hasAcceptedText: true,
                 contentGenerated: true,
+                systemRules: props.systemRules,
               }),
             });
           }}

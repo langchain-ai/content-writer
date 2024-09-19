@@ -25,7 +25,7 @@ export function RuleInfoDialog(props: RuleInfoDialogProps) {
         <div className="mt-6 space-y-4">
           <p className="text-base text-gray-700 leading-relaxed">
             Rule generation is a process where our AI powered agent learns to
-            create better tweets aligned with your preferences. It&apos;s
+            create better content aligned with your preferences. It&apos;s
             triggered in two ways:
           </p>
           <ul className="list-disc list-inside text-base text-gray-700 leading-relaxed pl-4">
@@ -34,21 +34,21 @@ export function RuleInfoDialog(props: RuleInfoDialogProps) {
           </ul>
           <p className="text-base text-gray-700 leading-relaxed mb-4">
             Once triggered, the agent analyzes your conversation history and any
-            edits you've made to generate a set of rules. These rules fall into
+            edits you&apos;ve made to generate a set of rules. These rules fall into
             two categories:
           </p>
           <ol className="list-decimal list-inside text-base text-gray-700 leading-relaxed pl-4 mb-4">
             <li className="mb-2">
               <span className="font-semibold">Content-based rules:</span> These
-              define the core elements and topics to include in your tweets.
+              define the core elements and topics to include in your writing.
             </li>
             <li className="mb-2">
               <span className="font-semibold">Style-based rules:</span> These
-              govern the tone, voice, and overall presentation of your tweets.
+              govern the tone, voice, and overall presentation of your writing.
             </li>
           </ol>
           <p className="text-base text-gray-700 leading-relaxed">
-            By applying these rules, future tweet suggestions are refined to
+            By applying these rules, future writing suggestions are refined to
             better align with your unique style and preferences, ensuring a more
             personalized experience.
           </p>

@@ -21,7 +21,7 @@ const isChatModelEnd = (streamEvent: StreamEvent): boolean => {
   );
 };
 
-const isWasTweetGeneratedNode = (streamEvent: StreamEvent): boolean => {
+const isWasContentGeneratedNode = (streamEvent: StreamEvent): boolean => {
   return streamEvent.metadata.langgraph_node === "wasContentGenerated";
 };
 
@@ -52,13 +52,13 @@ function processCallModelStreamEvent(
   return undefined;
 }
 
-function processWasTweetGeneratedToolCallEvent(
+function processWasContentGeneratedToolCallEvent(
   streamEvent: StreamEvent
 ): ToolCall | undefined {
   if (
     isChatModelEnd(streamEvent) &&
     streamEndHasToolCall(streamEvent) &&
-    isWasTweetGeneratedNode(streamEvent)
+    isWasContentGeneratedNode(streamEvent)
   ) {
     return streamEvent.data.output.kwargs.tool_calls[0];
   }
@@ -100,7 +100,7 @@ export async function processStream(
           }
 
           const newText = processCallModelStreamEvent(streamEvent);
-          const toolCall = processWasTweetGeneratedToolCallEvent(streamEvent);
+          const toolCall = processWasContentGeneratedToolCallEvent(streamEvent);
           const wasContentGenerated =
             toolCall && toolCall.name === "was_content_generated"
               ? toolCall.args.contentGenerated
@@ -112,7 +112,6 @@ export async function processStream(
               content: fullMessage.content + newText,
             });
           } else if (wasContentGenerated || contentGenerated) {
-            console.log("wasContentGenerated", wasContentGenerated);
             setContentGenerated(true);
             fullMessage = new AIMessage({
               id: fullMessage.id,

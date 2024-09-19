@@ -11,6 +11,7 @@ import { z } from "zod";
 import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { ChatAnthropic } from "@langchain/anthropic";
+import { DEFAULT_SYSTEM_RULES } from "@/constants";
 
 const GraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
@@ -30,15 +31,15 @@ const GraphAnnotation = Annotation.Root({
    * @TODO once switched to use LangGraph API, make this a SharedValue which depends on the 'thread_id' so it only persists for the current thread.
    */
   contentGenerated: Annotation<boolean>(),
+  /**
+   * The system rules to always include when generating responses.
+   * This is editable by the user.
+   */
+  systemRules: Annotation<string>({
+    reducer: (_, next) => next,
+    default: () => `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`,
+  }),
 });
-
-// Default rules always passed to the model.
-const SYSTEM_RULES = [
-  "Ensure the tone and style of the generated text matches the user's desired tone and style.",
-  "Be concise and avoid unnecessary information unless the user specifies otherwise.",
-  "Maintain consistency in terminology and phrasing as per the user's revisions.",
-  "Be mindful of the context and purpose of the text to ensure it aligns with the user's goals.",
-];
 
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";
 
@@ -57,7 +58,7 @@ const SYSTEM_PROMPT = `You are a helpful assistant tasked with thoughtfully fulf
 System rules:
 
 <system_rules>
-${SYSTEM_RULES.map((rule) => ` - ${rule}`).join("\n")}
+{systemRules}
 </system_rules>
 
 {rulesPrompt}`;
@@ -82,7 +83,7 @@ const callModel = async (
     }
   }
 
-  let systemPrompt = SYSTEM_PROMPT;
+  let systemPrompt = SYSTEM_PROMPT.replace("{systemRules}", state.systemRules);
   if (styleRules || contentRules) {
     systemPrompt
       .replace("{rulesPrompt}", RULES_PROMPT)
@@ -172,7 +173,7 @@ Here is the conversation:
 And here are the default system rules:
 
 <system_rules>
-${SYSTEM_RULES.map((rule) => ` - ${rule}`).join("\n")}
+{systemRules}
 </system_rules>
 
 Respond with updated rules to keep in mind for future conversations. Try to keep the rules you list high signal-to-noise - don't include unnecessary ones, but make sure the ones you do add are descriptive. Combine ones that seem similar and/or contradictory`;
@@ -189,6 +190,7 @@ Respond with updated rules to keep in mind for future conversations. Try to keep
   }
 
   const prompt = systemPrompt
+    .replace("{systemRules}", state.systemRules)
     .replace("{styleRules}", styleRules)
     .replace("{contentRules}", contentRules)
     .replace("{conversation}", _prepareConversation(state.messages));
@@ -263,7 +265,7 @@ If writing content was generated, set 'contentGenerated' to true, otherwise set 
   ]);
 };
 
-const shouldCheckTweetGeneration = (state: typeof GraphAnnotation.State) => {
+const shouldCheckContentGeneration = (state: typeof GraphAnnotation.State) => {
   if (state.contentGenerated) {
     return END;
   } else {
@@ -294,7 +296,7 @@ export function buildGraph(store?: VercelMemoryStore) {
     // Always start by checking whether or not to generate insights
     .addConditionalEdges(START, shouldGenerateInsights)
     // Always check if content was generated after calling the model
-    .addConditionalEdges("callModel", shouldCheckTweetGeneration)
+    .addConditionalEdges("callModel", shouldCheckContentGeneration)
     // No further action by the graph is necessary after either
     // generating a response via `callModel`, or rules via `generateInsights`.
     .addEdge("generateInsights", END)

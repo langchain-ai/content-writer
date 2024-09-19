@@ -86,7 +86,7 @@ const MyThreadWelcome: FC = () => {
           <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
           <AvatarFallback>LC</AvatarFallback>
         </Avatar>
-        <p className="mt-4 font-medium">What would you like to Tweet today?</p>
+        <p className="mt-4 font-medium">What would you like to write today?</p>
       </div>
     </ThreadPrimitive.Empty>
   );
