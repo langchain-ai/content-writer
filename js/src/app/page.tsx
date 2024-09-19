@@ -9,8 +9,13 @@ import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useGraph } from "@/hooks/useGraph";
 
 export default function Home() {
-  const { createAssistant, sendMessage, assistantId, setAssistantId } =
-    useGraph();
+  const {
+    createAssistant,
+    sendMessage,
+    streamMessage,
+    assistantId,
+    setAssistantId,
+  } = useGraph();
   const {
     setSystemRules,
     systemRules,
@@ -62,6 +67,7 @@ export default function Home() {
       <ContentComposerChatInterface
         systemRules={systemRules}
         sendMessage={sendMessage}
+        streamMessage={streamMessage}
       />
       <WelcomeDialog
         setSystemRules={setSystemRules}

@@ -1,5 +1,6 @@
 import { DEFAULT_SYSTEM_RULES } from "@/constants";
 import { useState, useCallback } from "react";
+import { createClient } from "./utils";
 
 export interface UserRules {
   styleRules?: string[];
@@ -65,18 +66,15 @@ export function useRules(assistantId: string | undefined) {
     if (!assistantId || assistantId === "") return;
 
     setIsLoadingUserRules(true);
+    const client = createClient();
     try {
-      const response = await fetch("/api/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ assistantId }),
+      const response = await client.runs.wait(null, assistantId, {
+        input: { onlyGetRules: true },
       });
 
-      const data = await response.json();
-      if (data?.styleRules?.length || data?.contentRules?.length) {
-        setUserRules(data);
+      const { rules } = response as Record<string, any>;
+      if (rules?.styleRules?.length || rules?.contentRules?.length) {
+        setUserRules(rules);
       }
     } finally {
       setIsLoadingUserRules(false);

@@ -70,7 +70,7 @@ export function Rules(props: RulesProps) {
                 </div>
               )}
               {userRules.contentRules && (
-                <div>
+                <div className="mb-6">
                   <h2 className="text-xl font-light text-gray-800 sticky top-0 bg-white py-2 mb-3">
                     Content Rules:
                   </h2>
@@ -83,6 +83,14 @@ export function Rules(props: RulesProps) {
                   </ul>
                 </div>
               )}
+              {!isLoadingSystemRules && systemRules ? (
+                <SystemRulesEditable
+                  setOpen={setOpen}
+                  setSystemRulesAndSave={setSystemRulesAndSave}
+                  systemRules={systemRules}
+                  setSystemRules={setSystemRules}
+                />
+              ) : null}
             </>
           ) : (
             <div className="space-y-4">
@@ -98,14 +106,14 @@ export function Rules(props: RulesProps) {
                   (You may need to refresh the page first)
                 </span>
               </p>
-              {!isLoadingSystemRules && systemRules && (
+              {!isLoadingSystemRules && systemRules ? (
                 <SystemRulesEditable
                   setOpen={setOpen}
                   setSystemRulesAndSave={setSystemRulesAndSave}
                   systemRules={systemRules}
                   setSystemRules={setSystemRules}
                 />
-              )}
+              ) : null}
             </div>
           )}
         </div>

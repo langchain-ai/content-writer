@@ -1,12 +1,13 @@
 import { Client } from "@langchain/langgraph-sdk";
 import { useState } from "react";
+import { createClient } from "./utils";
 
-const createClient = () => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
-  return new Client({
-    apiUrl,
-  });
-};
+export interface GraphInput {
+  messages: Record<string, any>[];
+  hasAcceptedText: boolean;
+  contentGenerated: boolean;
+  systemRules: string | undefined;
+}
 
 export function useGraph() {
   const [threadId, setThreadId] = useState<string>();
@@ -34,12 +35,7 @@ export function useGraph() {
     return thread;
   };
 
-  const sendMessage = async (params: {
-    messages: Record<string, any>[];
-    hasAcceptedText: boolean;
-    contentGenerated: boolean;
-    systemRules: string | undefined;
-  }) => {
+  const streamMessage = async (params: GraphInput) => {
     const { messages, hasAcceptedText, contentGenerated, systemRules } = params;
     if (!assistantId) {
       throw new Error("Assistant ID is required");
@@ -52,10 +48,30 @@ export function useGraph() {
     }
 
     const client = createClient();
-
     const input = { messages, hasAcceptedText, contentGenerated, systemRules };
-
     return client.runs.stream(tmpThreadId, assistantId, {
+      input,
+      streamMode: "events",
+    });
+  };
+
+  const sendMessage = async (
+    params: GraphInput
+  ): Promise<Record<string, any>> => {
+    const { messages, hasAcceptedText, contentGenerated, systemRules } = params;
+    if (!assistantId) {
+      throw new Error("Assistant ID is required");
+    }
+    let tmpThreadId = threadId;
+    if (!tmpThreadId) {
+      const thread = await createThread();
+      // Must assign to a tmp variable as the state update may not be immediate.
+      tmpThreadId = thread.thread_id;
+    }
+
+    const client = createClient();
+    const input = { messages, hasAcceptedText, contentGenerated, systemRules };
+    return await client.runs.wait(tmpThreadId, assistantId, {
       input,
       streamMode: "events",
     });
@@ -64,6 +80,7 @@ export function useGraph() {
   return {
     assistantId,
     setAssistantId,
+    streamMessage,
     sendMessage,
     createAssistant,
   };

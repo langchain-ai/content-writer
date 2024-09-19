@@ -3,9 +3,19 @@ import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { StreamEvent } from "@langchain/core/tracers/log_stream";
 import { ToolCall } from "@langchain/core/messages/tool";
 
+const processChunk = (
+  chunk: Record<string, any> | Record<string, any>[]
+): Record<string, any> => {
+  if (Array.isArray(chunk)) {
+    return chunk[1];
+  }
+  return chunk;
+};
+
 const isChatModelStream = (streamEvent: StreamEvent): boolean => {
   return !!(
-    streamEvent.event === "on_chat_model_stream" && streamEvent.data.chunk[1]
+    streamEvent.event === "on_chat_model_stream" &&
+    processChunk(streamEvent.data.chunk)
   );
 };
 
@@ -32,7 +42,7 @@ const streamEndHasToolCall = (streamEvent: StreamEvent): boolean => {
 
 const extractMessageId = (streamEvent: StreamEvent): string | undefined => {
   if (isChatModelStream(streamEvent)) {
-    return streamEvent.data.chunk[1].id;
+    return processChunk(streamEvent.data.chunk).id;
   }
   return undefined;
 };
@@ -41,7 +51,7 @@ function processCallModelStreamEvent(
   streamEvent: StreamEvent
 ): string | undefined {
   if (isChatModelStream(streamEvent) && isCallModelNode(streamEvent)) {
-    return streamEvent.data.chunk[1].content;
+    return processChunk(streamEvent.data.chunk).content;
   }
   return undefined;
 }

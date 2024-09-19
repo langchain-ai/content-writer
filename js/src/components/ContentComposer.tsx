@@ -15,21 +15,27 @@ import {
   convertLangchainMessages,
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
+import { GraphInput } from "@/hooks/useGraph";
 
 export interface ContentComposerChatInterfaceProps {
   systemRules: string | undefined;
-  sendMessage: (params: {
-    messages: Record<string, any>[];
-    hasAcceptedText: boolean;
-    contentGenerated: boolean;
-    systemRules: string | undefined;
-  }) => Promise<any>;
+  streamMessage: (params: GraphInput) => Promise<
+    AsyncGenerator<
+      {
+        event: string;
+        data: any;
+      },
+      any,
+      unknown
+    >
+  >;
+  sendMessage: (params: GraphInput) => Promise<Record<string, any>>;
 }
 
 export function ContentComposerChatInterface(
   props: ContentComposerChatInterfaceProps
 ): React.ReactElement {
-  const { systemRules, sendMessage } = props;
+  const { systemRules, streamMessage, sendMessage } = props;
   // Only messages which are rendered in the UI. This mainly excludes revised messages.
   const [renderedMessages, setRenderedMessages] = useState<BaseMessage[]>([]);
   // Messages which contain revisions are not rendered.
@@ -54,7 +60,7 @@ export function ContentComposerChatInterface(
       setRenderedMessages(currentConversation);
       setAllMessages((prevMessages) => [...prevMessages, humanMessage]);
 
-      const response = await sendMessage({
+      const response = await streamMessage({
         messages: currentConversation.map(convertToOpenAIFormat),
         hasAcceptedText: false,
         contentGenerated,
