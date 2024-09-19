@@ -7,7 +7,6 @@ import {
   START,
   StateGraph,
 } from "@langchain/langgraph";
-import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
@@ -43,8 +42,8 @@ const callModel = async (
   state: typeof GraphAnnotation.State,
   config?: RunnableConfig
 ) => {
-  const model = new ChatOpenAI({
-    model: "gpt-4o-mini",
+  const model = new ChatAnthropic({
+    model: "claude-3-5-sonnet-20240620",
     temperature: 0,
   });
 
@@ -132,8 +131,8 @@ Respond with updated rules to keep in mind for future conversations. Try to keep
       .describe("The rules which you have inferred from the conversation."),
   });
 
-  const modelWithStructuredOutput = new ChatOpenAI({
-    model: "gpt-4o",
+  const modelWithStructuredOutput = new ChatAnthropic({
+    model: "claude-3-5-sonnet-20240620",
     temperature: 0,
   }).withStructuredOutput(userRulesSchema, { name: "userRules" });
 
