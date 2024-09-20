@@ -13,6 +13,7 @@ import { HAS_SEEN_DIALOG } from "@/constants";
 import { Button } from "./ui/button";
 import { DialogContentProps } from "@radix-ui/react-dialog";
 import { Textarea } from "./ui/textarea";
+import { Progress } from "@radix-ui/react-progress";
 
 function StepOne() {
   return (
@@ -56,13 +57,6 @@ function StepTwo() {
         <li>Copy any AI-generated message</li>
         <li>Edit and save any AI-generated message</li>
       </ul>
-      <p className="text-base text-gray-600">
-        Each time a rule is generated, the system evaluates all existing rules
-        for relevance and freshness. Rules may be updated, combined, or removed
-        based on the latest context and your interactions. This ensures that the
-        Content Writer continuously adapts to your evolving needs and
-        preferences.
-      </p>
     </div>
   );
 }
@@ -151,7 +145,7 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="max-w-2xl p-8 bg-white rounded-lg shadow-xl"
+        className="max-w-2xl p-8"
         onPointerDownOutside={handlePointerDownOutside}
         hideCloseIcon={true}
       >
@@ -196,6 +190,15 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
             </Button>
           )}
         </div>
+        <Progress
+          value={((step - 1) / 2) * 100}
+          className="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden"
+        >
+          <div
+            className="h-full bg-black transition-all duration-300 ease-in-out"
+            style={{ width: `${((step - 1) / 2) * 100}%` }}
+          />
+        </Progress>
       </DialogContent>
     </Dialog>
   );
