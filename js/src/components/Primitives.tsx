@@ -9,8 +9,10 @@ import {
   ThreadAssistantMessage,
   ThreadPrimitive,
   useActionBarEdit,
+  useComposerStore,
   useMessage,
   useMessageStore,
+  useThreadActions,
 } from "@assistant-ui/react";
 import { useCallback, useEffect, useRef, useState, type FC } from "react";
 
@@ -169,6 +171,48 @@ const MyUserActionBar: FC = () => {
   );
 };
 
+const MyComposerSend = (props: {
+  setInfoDialogOpen: (open: boolean) => void;
+}) => {
+  const messageStore = useMessageStore();
+  const composerStore = useComposerStore();
+  const threadActions = useThreadActions();
+
+  const handleSend = () => {
+    const composerState = composerStore.getState();
+    const { parentId, message } = messageStore.getState();
+
+    threadActions.append({
+      parentId,
+      role: message.role,
+      content: [{ type: "text", text: composerState.text }],
+    });
+    composerState.cancel();
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <Button onClick={handleSend}>Save</Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>
+            Will trigger rule generation (
+            <a
+              onClick={() => props.setInfoDialogOpen(true)}
+              className="text-blue-400 underline underline-offset-2 cursor-pointer"
+            >
+              whats this?
+            </a>
+            )
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 const MyEditComposer: FC = () => {
   const [infoDialogOpen, setInfoDialogOpen] = useState(false);
 
@@ -180,27 +224,7 @@ const MyEditComposer: FC = () => {
         <ComposerPrimitive.Cancel asChild>
           <Button variant="ghost">Cancel</Button>
         </ComposerPrimitive.Cancel>
-        <ComposerPrimitive.Send asChild>
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <Button>Save</Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Will trigger rule generation (
-                  <a
-                    onClick={() => setInfoDialogOpen(true)}
-                    className="text-blue-400 underline underline-offset-2 cursor-pointer"
-                  >
-                    whats this?
-                  </a>
-                  )
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </ComposerPrimitive.Send>
+        <MyComposerSend setInfoDialogOpen={setInfoDialogOpen} />
       </div>
       <RuleInfoDialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen} />
     </ComposerPrimitive.Root>
