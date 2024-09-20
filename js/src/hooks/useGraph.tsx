@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "./utils";
 import { getCookie, setCookie } from "@/lib/cookies";
-import { ASSISTANT_ID_COOKIE } from "@/constants";
+import { ASSISTANT_ID_COOKIE, USER_TIED_TO_ASSISTANT } from "@/constants";
 
 export interface GraphInput {
   messages: Record<string, any>[];
@@ -44,6 +44,13 @@ export function useGraph(input: UseGraphInput) {
       });
     }
   }, [input.userId]);
+
+  // TODO: remove after a couple days when all existing users have been updated.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!input.userId) return;
+    void ensureAssistantIsTiedToUser(input.userId);
+  }, [assistantId, input.userId]);
 
   const createAssistant = async (
     graphId: string,
@@ -149,6 +156,21 @@ export function useGraph(input: UseGraphInput) {
       fields
     );
     return updatedAssistant;
+  };
+
+  const ensureAssistantIsTiedToUser = async (userId: string) => {
+    if (!assistantId || !getCookie(USER_TIED_TO_ASSISTANT)) return;
+    const client = createClient();
+    const currentAssistant = await client.assistants.get(assistantId);
+    if (currentAssistant.metadata && "userId" in currentAssistant.metadata) {
+      setCookie(USER_TIED_TO_ASSISTANT, "true");
+      return;
+    }
+    // Update assistant metadata to include userId
+    await updateAssistantMetadata(assistantId, {
+      metadata: { userId },
+    });
+    setCookie(USER_TIED_TO_ASSISTANT, "true");
   };
 
   return {
