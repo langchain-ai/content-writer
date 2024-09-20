@@ -36,12 +36,14 @@ export interface ContentComposerChatInterfaceProps {
   sendMessage: (params: GraphInput) => Promise<Record<string, any>>;
   createAssistant: (
     graphId: string,
+    userId: string,
     extra?: {
       assistantName?: string;
       assistantDescription?: string;
       overrideExisting?: boolean;
     }
   ) => Promise<Assistant | undefined>;
+  userId: string | undefined;
 }
 
 export function ContentComposerChatInterface(
@@ -181,6 +183,7 @@ export function ContentComposerChatInterface(
       <AssistantRuntimeProvider runtime={runtime}>
         <MyThread
           createAssistant={props.createAssistant}
+          userId={props.userId}
           onCopy={async () => {
             // Do not generate insights if content hasn't been generated
             if (!contentGenerated) return;
