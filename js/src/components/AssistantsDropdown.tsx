@@ -24,20 +24,17 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
   const [assistants, setAssistants] = useState<Assistant[]>([]);
 
   useEffect(() => {
-    if (assistants.length > 0) return;
-    if (!props.userId || !props.selectedAssistantId) return;
+    if (!props.userId || !props.selectedAssistantId || assistants.length > 0)
+      return;
 
     props.getAssistantsByUserId(props.userId).then((a) => {
-      if (!a || !a.length) {
-        console.log("No assistants found for user");
+      if (!a.length) {
+        return [];
       }
-      console.log("Got", a, props.selectedAssistantId);
-      // filter so the selected assistant is first, and the rest are in the same order as originally
       const selectedAssistant = a.find(
         (assistant) => assistant.assistant_id === props.selectedAssistantId
       );
       if (!selectedAssistant) {
-        console.log("Selected assistant not found in assistants list");
         return a;
       }
       const otherAssistants = a.filter(
