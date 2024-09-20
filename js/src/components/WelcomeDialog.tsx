@@ -8,10 +8,79 @@ import {
   DialogTitle,
   DialogDescription,
 } from "./ui/dialog";
-import { getCookie, setCookie } from "@/lib/cookies";
+import { setCookie, getCookie } from "@/lib/cookies";
 import { HAS_SEEN_DIALOG } from "@/constants";
-import { SystemRulesEditable } from "./SystemRulesEditable";
 import { Button } from "./ui/button";
+import { DialogContentProps } from "@radix-ui/react-dialog";
+import { Textarea } from "./ui/textarea";
+
+function StepOne() {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-2xl font-semibold text-gray-800">Welcome!</h3>
+      <p className="text-lg text-gray-600">
+        This intelligent companion is designed to help you craft engaging content. As you interact with it, it learns and adapts to your style and preferences.
+      </p>
+      <p className="text-base text-gray-600 font-light">
+        <strong className="font-bold">Please note:</strong> The initial output may not be perfect. It's designed to start as a blank state. The more you work with it, the better it becomes at understanding your needs and generating relevant content.
+      </p>
+    </div>
+  );
+}
+
+function StepTwo() {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-2xl font-semibold text-gray-800">How It Works</h3>
+      <p className="text-base text-gray-600">
+        The Content Writer uses a dynamic system of rules to improve its performance over time. These rules help guide the AI in generating content that matches your style and needs.
+      </p>
+      <p className="text-base text-gray-600">
+        There are two types of rules:
+      </p>
+      <ul className="list-disc list-inside text-base text-gray-600 space-y-2">
+        <li>Style rules: Guidelines for tone, structure, and writing style</li>
+        <li>Content rules: Domain-specific guidelines for context and purpose</li>
+      </ul>
+      <p className="text-base text-gray-600">
+        Rules are automatically generated and updated when you:
+      </p>
+      <ul className="list-disc list-inside text-base text-gray-600 space-y-2">
+        <li>Copy any AI-generated message</li>
+        <li>Edit and save any AI-generated message</li>
+      </ul>
+      <p className="text-base text-gray-600">
+        Each time a rule is generated, the system evaluates all existing rules for relevance and freshness. Rules may be updated, combined, or removed based on the latest context and your interactions. This ensures that the Content Writer continuously adapts to your evolving needs and preferences.
+      </p>
+    </div>
+  );
+}
+
+interface StepThreeProps {
+  setOpen: (open: boolean) => void;
+  setSystemRulesAndSave: (newSystemRules: string) => Promise<void>;
+  systemRules: string;
+  setSystemRules: (newSystemRules: string) => void;
+}
+
+function StepThree(props: StepThreeProps) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-2xl font-semibold text-gray-800">Customize Your Experience</h3>
+      <p className="text-base text-gray-600">
+        Below are the default system rules. These are included in every request, and can only be modified by you, the user.
+      </p>
+      <p className="text-base text-gray-600">
+        Feel free to edit them to better suit your needs:
+      </p>
+      <Textarea
+        rows={8}
+        value={props.systemRules}
+        onChange={(e) => props.setSystemRules(e.target.value)}
+      />
+    </div>
+  );
+}
 
 export interface WelcomeDialogProps {
   isLoadingSystemRules: boolean;
@@ -28,64 +97,84 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
     setSystemRules,
   } = props;
   const [open, setOpen] = useState(false);
-
-  const handleClose = (open: boolean) => {
-    if (!open) {
-      if (process.env.NODE_ENV !== "development") {
-        setCookie(HAS_SEEN_DIALOG, "true");
-      }
-    }
-    setOpen(open);
-    void setSystemRulesAndSave(systemRules ?? "");
-  };
+  const [step, setStep] = useState(1);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const hasSeenDialog = getCookie(HAS_SEEN_DIALOG);
-    if (!hasSeenDialog) {
+    const hasUserSeenDialog = getCookie(HAS_SEEN_DIALOG);
+    if (!hasUserSeenDialog) {
       setOpen(true);
-    } else {
-      setOpen(false);
     }
-  }, []);
+  }, [])
+
+  const handleClose = () => {
+    if (process.env.NODE_ENV !== "development") {
+      setCookie(HAS_SEEN_DIALOG, "true");
+    }
+    void setSystemRulesAndSave(systemRules ?? "");
+    setOpen(false);
+  };
+
+  const handleNext = () => {
+    if (step < 3) {
+      setStep(step + 1);
+    } else {
+      handleClose();
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+
+  const handlePointerDownOutside: DialogContentProps["onPointerDownOutside"] = (event) => {
+    event.preventDefault();
+  };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl p-8 bg-white rounded-lg shadow-xl">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-2xl p-8 bg-white rounded-lg shadow-xl" onPointerDownOutside={handlePointerDownOutside} hideCloseIcon={true}>
         <DialogHeader>
           <DialogTitle className="text-3xl font-light text-gray-800">
-            Welcome to LangChain&apos;s Content Writer
+            LangChain's Content Writer
           </DialogTitle>
-          <DialogDescription className="mt-2 text-md font-light text-gray-600">
+          <DialogDescription className="mt-2 text-lg font-light text-gray-600">
             Your intelligent companion for crafting engaging content
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-6 space-y-6">
-          <p className="text-sm font-light text-gray-700">
-            LangChain&apos;s Content Writer learns from your interactions to
-            help you compose better content. It builds a personalized knowledge
-            base through two key actions:
-          </p>
-          <ul className="list-disc list-inside text-sm font-light text-gray-700 space-y-2">
-            <li>When you copy any AI-generated message</li>
-            <li>When you edit and save any AI-generated message</li>
-          </ul>
-          <p className="text-sm font-light text-gray-700">
-            When these actions are performed, the agent will generate rules
-            based on your feedback and the content generated.
-          </p>
-          {!isLoadingSystemRules && systemRules && (
-            <SystemRulesEditable
-              setOpen={setOpen}
-              setSystemRulesAndSave={setSystemRulesAndSave}
+        <div className="mt-6">
+          {step === 1 && <StepOne />}
+          {step === 2 && <StepTwo />}
+          {step === 3 && !isLoadingSystemRules && systemRules && (
+            <StepThree
               systemRules={systemRules}
               setSystemRules={setSystemRules}
+              setSystemRulesAndSave={setSystemRulesAndSave}
+              setOpen={(open) => {
+                if (!open) {
+                  handleClose();
+                }
+              }}
             />
           )}
         </div>
-        <div className="mt-8 flex justify-end">
-          <Button onClick={() => handleClose(false)}>Get Started</Button>
+        <div className="mt-8 flex justify-between">
+          {step > 1 && (
+            <Button variant="outline" onClick={handleBack}>
+              Back
+            </Button>
+          )}
+          {step < 3 && (
+            <Button className="ml-auto" onClick={handleNext}>
+              Next
+            </Button>
+          )}
+          {step === 3 && (
+            <Button className="ml-auto" onClick={handleClose}>
+              Get started
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
