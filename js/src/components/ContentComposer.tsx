@@ -150,13 +150,10 @@ export function ContentComposerChatInterface(
     onEdit,
   });
 
-  const handleNewAssistant = () => {}
-
   return (
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <MyThread
-          handleNewAssistant={handleNewAssistant}
           onCopy={async () => {
             // Do not generate insights if content hasn't been generated
             if (!contentGenerated) return;

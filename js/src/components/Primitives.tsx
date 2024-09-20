@@ -34,10 +34,9 @@ import {
 } from "./ui/tooltip";
 import { RuleInfoDialog } from "./RuleInfoDialog";
 import { BaseMessage } from "@langchain/core/messages";
+import { NewAssistantDialog } from "./NewAssistantDialog";
 
-export interface MyThreadProps extends MyAssistantMessageProps {
-  handleNewAssistant: () => void;
-}
+export interface MyThreadProps extends MyAssistantMessageProps {}
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   return (
@@ -61,9 +60,7 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
         <div className="sticky bottom-0 mt-4 flex w-full max-w-2xl flex-grow flex-col items-center justify-end rounded-t-lg bg-inherit pb-4">
           <MyThreadScrollToBottom />
           <div className="flex flex-row gap-3 w-full items-center">
-            <TooltipIconButton onClick={props.handleNewAssistant} delayDuration={0} tooltip="New assistant" className="w-10 h-10">
-              <PlusCircleIcon size={24} />
-            </TooltipIconButton>
+            <NewAssistantDialog />
             <MyComposer />
           </div>
         </div>
