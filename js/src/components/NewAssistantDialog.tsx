@@ -1,14 +1,13 @@
-import { FormEventHandler, useState } from "react";
+import { useState } from "react";
 import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { PlusCircleIcon } from "lucide-react";
+import { PlusCircleIcon, Loader } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -22,7 +21,11 @@ import { type Assistant } from "@langchain/langgraph-sdk";
 export interface NewAssistantDialogProps {
   createAssistant: (
     graphId: string,
-    extra?: { assistantName?: string, assistantDescription?: string }
+    extra?: {
+      assistantName?: string;
+      assistantDescription?: string;
+      overrideExisting?: boolean;
+    }
   ) => Promise<Assistant | undefined>;
 }
 
@@ -32,15 +35,21 @@ export function NewAssistantDialog(props: NewAssistantDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleCreateNewAssistant = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateNewAssistant = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setIsLoading(true);
-    await props.createAssistant(process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID ?? "", {
-      assistantName: name,
-      assistantDescription: description,
-    });
-    setIsLoading(false);
-    setOpen(false);
+    await props.createAssistant(
+      process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID ?? "",
+      {
+        assistantName: name,
+        assistantDescription: description,
+        overrideExisting: true,
+      }
+    );
+    // Force page reload
+    window.location.reload();
   };
 
   return (
@@ -48,7 +57,11 @@ export function NewAssistantDialog(props: NewAssistantDialogProps) {
       <DialogTrigger asChild>
         <TooltipProvider>
           <Tooltip delayDuration={0}>
-            <TooltipTrigger className="hover:cursor-pointer" asChild>
+            <TooltipTrigger
+              onClick={() => setOpen(true)}
+              className="hover:cursor-pointer"
+              asChild
+            >
               <PlusCircleIcon />
             </TooltipTrigger>
             <TooltipContent>New assistant</TooltipContent>
@@ -57,26 +70,51 @@ export function NewAssistantDialog(props: NewAssistantDialogProps) {
       </DialogTrigger>
       <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-3xl font-light text-gray-800">
+          <DialogTitle className="text-3xl font-light text-gray-800 mb-6">
             Create a new assistant
           </DialogTitle>
         </DialogHeader>
-        <div className="mt-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <form onSubmit={handleCreateNewAssistant}>
-            <label>Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tweet writer" />
-            <label>Description</label>
-            <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="For writing tweets about..." />
-          </form>
-        </div>
-        <div className="mt-6 flex justify-end">
-          <Button
-            onClick={() => {}}
-            className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded shadow transition"
-          >
-            Create
-          </Button>
-        </div>
+        <form onSubmit={handleCreateNewAssistant} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Name <span className="text-xs text-gray-500">(optional)</span>
+            </label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Tweet writer"
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description{" "}
+              <span className="text-xs text-gray-500">(optional)</span>
+            </label>
+            <Textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="For writing tweets about..."
+              className="w-full"
+            />
+          </div>
+          <div className="mt-6 flex justify-end">
+            {isLoading ? (
+              <p className="flex items-center text-gray-600">
+                Loading
+                <Loader className="ml-2 h-4 w-4 animate-spin" />
+              </p>
+            ) : (
+              <Button
+                type="submit"
+                className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded shadow transition"
+              >
+                Create
+              </Button>
+            )}
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
