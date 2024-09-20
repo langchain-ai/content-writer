@@ -133,7 +133,7 @@ export function ContentComposerChatInterface(
       toast({
         description: (
           <p className="flex items-center">
-            Rule generation triggered
+            Generating rules
             <Loader className="ml-2 h-4 w-4 animate-spin" />
           </p>
         ),
@@ -177,7 +177,7 @@ export function ContentComposerChatInterface(
             toast({
               description: (
                 <p className="flex items-center">
-                  Rule generation triggered
+                  Generating rules
                   <Loader className="ml-2 h-4 w-4 animate-spin" />
                 </p>
               ),
