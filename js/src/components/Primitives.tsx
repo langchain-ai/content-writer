@@ -22,6 +22,7 @@ import {
   CopyIcon,
   PencilIcon,
   SendHorizontalIcon,
+  PlusCircleIcon,
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
@@ -34,7 +35,9 @@ import {
 import { RuleInfoDialog } from "./RuleInfoDialog";
 import { BaseMessage } from "@langchain/core/messages";
 
-export interface MyThreadProps extends MyAssistantMessageProps {}
+export interface MyThreadProps extends MyAssistantMessageProps {
+  handleNewAssistant: () => void;
+}
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   return (
@@ -57,7 +60,12 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
 
         <div className="sticky bottom-0 mt-4 flex w-full max-w-2xl flex-grow flex-col items-center justify-end rounded-t-lg bg-inherit pb-4">
           <MyThreadScrollToBottom />
-          <MyComposer />
+          <div className="flex flex-row gap-3 w-full items-center">
+            <TooltipIconButton onClick={props.handleNewAssistant} delayDuration={0} tooltip="New assistant" className="w-10 h-10">
+              <PlusCircleIcon size={24} />
+            </TooltipIconButton>
+            <MyComposer />
+          </div>
         </div>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>
