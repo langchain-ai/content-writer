@@ -21,14 +21,13 @@ export default function Home() {
     setAssistantId,
     isGetAssistantsLoading,
     getAssistantsByUserId,
+    updateAssistantMetadata,
   } = useGraph({ userId });
   const {
     setSystemRules,
     systemRules,
     setSystemRulesAndSave,
-    getSystemRules,
     isLoadingSystemRules,
-    getUserRules,
     userRules,
   } = useRules(assistantId);
 
@@ -60,6 +59,8 @@ export default function Home() {
         setSystemRulesAndSave={setSystemRulesAndSave}
         isLoadingSystemRules={isLoadingSystemRules}
         systemRules={systemRules}
+        updateAssistantMetadata={updateAssistantMetadata}
+        assistantId={assistantId}
       />
     </main>
   );

@@ -133,6 +133,14 @@ export function useGraph(input: UseGraphInput) {
     setCookie(ASSISTANT_ID_COOKIE, assistantId);
   };
 
+  const updateAssistantMetadata = async (assistantId: string, fields: {
+    metadata: Record<string, any>,
+  }) => {
+    const client = createClient();
+    const updatedAssistant = await client.assistants.update(assistantId, fields);
+    return updatedAssistant;
+  };
+
   return {
     assistantId,
     setAssistantId: updateAssistant,
@@ -141,5 +149,6 @@ export function useGraph(input: UseGraphInput) {
     createAssistant,
     isGetAssistantsLoading,
     getAssistantsByUserId,
+    updateAssistantMetadata,
   };
 }
