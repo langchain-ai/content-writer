@@ -1,5 +1,5 @@
 import { DEFAULT_SYSTEM_RULES } from "@/constants";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { createClient } from "./utils";
 
 export interface UserRules {
@@ -16,11 +16,25 @@ export function useRules(assistantId: string | undefined) {
   const [isSavingSystemRules, setIsSavingSystemRules] = useState(false);
   const [isLoadingUserRules, setIsLoadingUserRules] = useState(false);
 
-  const getSystemRules = useCallback(async () => {
-    if (!assistantId || assistantId === "") {
-      return;
-    }
+  useEffect(() => {
+    if (!assistantId) return;
+
+    const fetchRules = async () => {
+      if (!systemRules) {
+        await getSystemRules();
+      }
+      if (!userRules) {
+        await getUserRules();
+      }
+    };
+
+    void fetchRules();
+  }, [assistantId]);
+
+  const getSystemRules = async () => {
+    if (!assistantId || assistantId === "") return;
     setIsLoadingSystemRules(true);
+
     try {
       const queryParams = new URLSearchParams({ assistantId });
       const fullUrl = `/api/system_rules?${queryParams.toString()}`;
@@ -39,32 +53,27 @@ export function useRules(assistantId: string | undefined) {
     } finally {
       setIsLoadingSystemRules(false);
     }
-  }, [assistantId]);
+  };
 
-  const setSystemRulesAndSave = useCallback(
-    async (newSystemRules: string) => {
-      if (!assistantId || assistantId === "") return;
-
-      setIsSavingSystemRules(true);
-      try {
-        setSystemRules(newSystemRules);
-        await fetch("/api/system_rules", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ assistantId, systemRules: newSystemRules }),
-        });
-      } finally {
-        setIsSavingSystemRules(false);
-      }
-    },
-    [assistantId]
-  );
-
-  const getUserRules = useCallback(async () => {
+  const setSystemRulesAndSave = async (newSystemRules: string) => {
     if (!assistantId || assistantId === "") return;
+    setIsSavingSystemRules(true);
+    try {
+      setSystemRules(newSystemRules);
+      await fetch("/api/system_rules", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ assistantId, systemRules: newSystemRules }),
+      });
+    } finally {
+      setIsSavingSystemRules(false);
+    }
+  };
 
+  const getUserRules = async () => {
+    if (!assistantId || assistantId === "") return;
     setIsLoadingUserRules(true);
     const client = createClient();
     try {
@@ -79,7 +88,7 @@ export function useRules(assistantId: string | undefined) {
     } finally {
       setIsLoadingUserRules(false);
     }
-  }, [assistantId]);
+  };
 
   return {
     getSystemRules,

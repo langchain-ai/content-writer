@@ -21,7 +21,7 @@ export default function Home() {
     setAssistantId,
     isGetAssistantsLoading,
     getAssistantsByUserId,
-  } = useGraph();
+  } = useGraph(userId);
   const {
     setSystemRules,
     systemRules,
@@ -31,43 +31,6 @@ export default function Home() {
     getUserRules,
     userRules,
   } = useRules(assistantId);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!userId) return;
-    if (assistantId) return;
-    if (!process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID) {
-      throw new Error("Missing NEXT_PUBLIC_LANGGRAPH_GRAPH_ID");
-    }
-
-    // The assistant ID can not be found in the env vars, so create a new one.
-    const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
-    if (!assistantIdCookie) {
-      createAssistant(process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID, userId).then(
-        (assistant) => {
-          if (!assistant && !assistantId) {
-            throw new Error("Failed to create assistant");
-          }
-          if (!assistant) return;
-          const newAssistantId = assistant.assistant_id;
-          setCookie(ASSISTANT_ID_COOKIE, newAssistantId);
-        }
-      );
-    } else {
-      setAssistantId(assistantIdCookie);
-    }
-  }, [assistantId, userId]);
-
-  useEffect(() => {
-    if (!assistantId) return;
-
-    if (!systemRules) {
-      void getSystemRules();
-    }
-    if (!userRules) {
-      void getUserRules();
-    }
-  }, [assistantId]);
 
   return (
     <main className="h-screen">

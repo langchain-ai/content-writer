@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "./utils";
-import { setCookie } from "@/lib/cookies";
+import { getCookie, setCookie } from "@/lib/cookies";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
 
 export interface GraphInput {
@@ -10,10 +10,35 @@ export interface GraphInput {
   systemRules: string | undefined;
 }
 
-export function useGraph() {
+export function useGraph(userId: string | undefined) {
   const [threadId, setThreadId] = useState<string>();
   const [assistantId, setAssistantId] = useState<string>();
   const [isGetAssistantsLoading, setIsGetAssistantsLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (assistantId) return;
+    if (!process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID) {
+      throw new Error("Graph ID is required");
+    }
+
+    const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
+
+    if (assistantIdCookie) {
+      setAssistantId(assistantIdCookie);
+    } else if (userId) {
+      createAssistant(process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID, userId).then(
+        (assistant) => {
+          if (!assistant) {
+            throw new Error("Failed to create assistant");
+          }
+          const newAssistantId = assistant.assistant_id;
+          setCookie(ASSISTANT_ID_COOKIE, newAssistantId);
+          setAssistantId(newAssistantId);
+        }
+      );
+    }
+  }, [userId]);
 
   const createAssistant = async (
     graphId: string,
