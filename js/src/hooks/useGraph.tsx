@@ -88,9 +88,11 @@ export function useGraph(input: UseGraphInput) {
     }
 
     const client = createClient();
-    const input = { messages, hasAcceptedText, contentGenerated, systemRules };
+    const input = { messages, contentGenerated, systemRules };
+    const config = { configurable: { systemRules, hasAcceptedText } };
     return client.runs.stream(tmpThreadId, assistantId, {
       input,
+      config,
       streamMode: "events",
     });
   };
@@ -110,9 +112,11 @@ export function useGraph(input: UseGraphInput) {
     }
 
     const client = createClient();
-    const input = { messages, hasAcceptedText, contentGenerated, systemRules };
+    const input = { messages, contentGenerated };
+    const config = { configurable: { systemRules, hasAcceptedText } };
     return await client.runs.wait(tmpThreadId, assistantId, {
       input,
+      config,
       streamMode: "events",
     });
   };
