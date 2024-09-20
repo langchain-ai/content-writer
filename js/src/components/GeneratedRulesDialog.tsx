@@ -11,24 +11,13 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { type UserRules } from "@/hooks/useRules";
-import { SystemRulesEditable } from "./SystemRulesEditable";
 
-export interface RulesProps {
-  isLoadingSystemRules: boolean;
-  systemRules: string | undefined;
+export interface GeneratedRulesProps {
   userRules: UserRules | undefined;
-  setSystemRulesAndSave: (newSystemRules: string) => Promise<void>;
-  setSystemRules: (newSystemRules: string) => void;
 }
 
-export function Rules(props: RulesProps) {
-  const {
-    userRules,
-    systemRules,
-    isLoadingSystemRules,
-    setSystemRulesAndSave,
-    setSystemRules,
-  } = props;
+export function GeneratedRulesDialog(props: GeneratedRulesProps) {
+  const { userRules } = props;
   const [open, setOpen] = useState(false);
 
   return (
@@ -36,15 +25,15 @@ export function Rules(props: RulesProps) {
       <DialogTrigger asChild>
         <div
           onClick={() => setOpen(true)}
-          className="fixed top-4 right-4 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-md shadow-sm transition-colors duration-200 cursor-pointer flex items-center space-x-2"
+          className="fixed top-4 right-36 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-md shadow-sm transition-colors duration-200 cursor-pointer flex items-center space-x-2"
         >
-          <p className="text-sm font-light">Rules</p>
+          <p className="text-sm font-light">Generated Rules</p>
         </div>
       </DialogTrigger>
       <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl">
         <DialogHeader>
           <DialogTitle className="text-3xl font-light text-gray-800">
-            Rules
+            Generated Rules
           </DialogTitle>
           <DialogDescription className="mt-2 text-md font-light text-gray-600">
             {userRules?.contentRules || userRules?.styleRules
@@ -83,14 +72,6 @@ export function Rules(props: RulesProps) {
                   </ul>
                 </div>
               )}
-              {!isLoadingSystemRules && systemRules ? (
-                <SystemRulesEditable
-                  setOpen={setOpen}
-                  setSystemRulesAndSave={setSystemRulesAndSave}
-                  systemRules={systemRules}
-                  setSystemRules={setSystemRules}
-                />
-              ) : null}
             </>
           ) : (
             <div className="space-y-4">
@@ -106,14 +87,6 @@ export function Rules(props: RulesProps) {
                   (You may need to refresh the page first)
                 </span>
               </p>
-              {!isLoadingSystemRules && systemRules ? (
-                <SystemRulesEditable
-                  setOpen={setOpen}
-                  setSystemRulesAndSave={setSystemRulesAndSave}
-                  systemRules={systemRules}
-                  setSystemRules={setSystemRules}
-                />
-              ) : null}
             </div>
           )}
         </div>

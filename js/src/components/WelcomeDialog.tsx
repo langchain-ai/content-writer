@@ -26,9 +26,9 @@ function StepOne() {
       </p>
       <p className="text-base text-gray-600 font-light">
         <strong className="font-bold">Please note:</strong> The initial output
-        may not be perfect. It&apos;s designed to start as a blank state. The more
-        you work with it, the better it becomes at understanding your needs and
-        generating relevant content.
+        may not be perfect. It&apos;s designed to start as a blank state. The
+        more you work with it, the better it becomes at understanding your needs
+        and generating relevant content.
       </p>
     </div>
   );
@@ -115,9 +115,7 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
   }, []);
 
   const handleClose = () => {
-    if (process.env.NODE_ENV !== "development") {
-      setCookie(HAS_SEEN_DIALOG, "true");
-    }
+    setCookie(HAS_SEEN_DIALOG, "true");
     void setSystemRulesAndSave(systemRules ?? "");
     setOpen(false);
   };

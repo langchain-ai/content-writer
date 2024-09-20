@@ -34,11 +34,6 @@ export function SystemRulesEditable(props: SystemRulesEditableProps) {
           value={systemRules}
           onChange={(e) => setSystemRules(e.target.value)}
         />
-        <div className="flex justify-end">
-          <Button variant="outline" type="submit" size="sm">
-            Save and close
-          </Button>
-        </div>
       </form>
     </div>
   );
