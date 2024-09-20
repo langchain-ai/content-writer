@@ -19,6 +19,7 @@ import { GraphInput } from "@/hooks/useGraph";
 import { Toaster } from "./ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
+import { type Assistant } from "@langchain/langgraph-sdk";
 
 export interface ContentComposerChatInterfaceProps {
   systemRules: string | undefined;
@@ -33,6 +34,14 @@ export interface ContentComposerChatInterfaceProps {
     >
   >;
   sendMessage: (params: GraphInput) => Promise<Record<string, any>>;
+  createAssistant: (
+    graphId: string,
+    extra?: {
+      assistantName?: string;
+      assistantDescription?: string;
+      overrideExisting?: boolean;
+    }
+  ) => Promise<Assistant | undefined>;
 }
 
 export function ContentComposerChatInterface(
@@ -171,6 +180,7 @@ export function ContentComposerChatInterface(
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <MyThread
+          createAssistant={props.createAssistant}
           onCopy={async () => {
             // Do not generate insights if content hasn't been generated
             if (!contentGenerated) return;

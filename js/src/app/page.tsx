@@ -8,15 +8,17 @@ import { GeneratedRulesDialog } from "@/components/GeneratedRulesDialog";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useGraph } from "@/hooks/useGraph";
 import { SystemRulesDialog } from "@/components/SystemRulesDialog";
+import { useUser } from "@/hooks/useUser";
 
 export default function Home() {
+  const { userId } = useUser();
   const {
     createAssistant,
     sendMessage,
     streamMessage,
     assistantId,
     setAssistantId,
-  } = useGraph();
+  } = useGraph({ userId });
   const {
     setSystemRules,
     systemRules,
@@ -66,6 +68,7 @@ export default function Home() {
   return (
     <main className="h-screen">
       <ContentComposerChatInterface
+        createAssistant={createAssistant}
         systemRules={systemRules}
         sendMessage={sendMessage}
         streamMessage={streamMessage}

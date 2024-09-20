@@ -33,8 +33,19 @@ import {
 } from "./ui/tooltip";
 import { RuleInfoDialog } from "./RuleInfoDialog";
 import { BaseMessage } from "@langchain/core/messages";
+import { NewAssistantDialog } from "./NewAssistantDialog";
+import { type Assistant } from "@langchain/langgraph-sdk";
 
-export interface MyThreadProps extends MyAssistantMessageProps {}
+export interface MyThreadProps extends MyAssistantMessageProps {
+  createAssistant: (
+    graphId: string,
+    extra?: {
+      assistantName?: string;
+      assistantDescription?: string;
+      overrideExisting?: boolean;
+    }
+  ) => Promise<Assistant | undefined>;
+}
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   return (
@@ -57,7 +68,10 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
 
         <div className="sticky bottom-0 mt-4 flex w-full max-w-2xl flex-grow flex-col items-center justify-end rounded-t-lg bg-inherit pb-4">
           <MyThreadScrollToBottom />
-          <MyComposer />
+          <div className="flex flex-row gap-3 w-full items-center">
+            <NewAssistantDialog createAssistant={props.createAssistant} />
+            <MyComposer />
+          </div>
         </div>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>

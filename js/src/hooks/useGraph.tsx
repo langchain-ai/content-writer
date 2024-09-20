@@ -1,6 +1,7 @@
-import { Client } from "@langchain/langgraph-sdk";
 import { useState } from "react";
 import { createClient } from "./utils";
+import { setCookie } from "@/lib/cookies";
+import { ASSISTANT_ID_COOKIE } from "@/constants";
 
 export interface GraphInput {
   messages: Record<string, any>[];
@@ -9,22 +10,29 @@ export interface GraphInput {
   systemRules: string | undefined;
 }
 
-export function useGraph() {
+export interface UseGraphInput {
+  userId?: string;
+}
+
+export function useGraph(input: UseGraphInput) {
   const [threadId, setThreadId] = useState<string>();
   const [assistantId, setAssistantId] = useState<string>();
 
   const createAssistant = async (
     graphId: string,
-    extra?: { assistantName: string }
+    extra?: {
+      assistantName?: string;
+      assistantDescription?: string;
+      overrideExisting?: boolean;
+    }
   ) => {
-    if (assistantId) return;
+    if (assistantId && !extra?.overrideExisting) return;
     const client = createClient();
-    const metadata = extra?.assistantName
-      ? { assistantName: extra.assistantName }
-      : undefined;
+    const metadata = { ...(extra || {}), userId: input.userId };
 
     const assistant = await client.assistants.create({ graphId, metadata });
     setAssistantId(assistant.assistant_id);
+    setCookie(ASSISTANT_ID_COOKIE, assistant.assistant_id);
     return assistant;
   };
 
