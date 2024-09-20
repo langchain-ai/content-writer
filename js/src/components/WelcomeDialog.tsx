@@ -19,10 +19,15 @@ function StepOne() {
     <div className="space-y-4">
       <h3 className="text-2xl font-semibold text-gray-800">Welcome!</h3>
       <p className="text-lg text-gray-600">
-        This intelligent companion is designed to help you craft engaging content. As you interact with it, it learns and adapts to your style and preferences.
+        This intelligent companion is designed to help you craft engaging
+        content. As you interact with it, it learns and adapts to your style and
+        preferences.
       </p>
       <p className="text-base text-gray-600 font-light">
-        <strong className="font-bold">Please note:</strong> The initial output may not be perfect. It's designed to start as a blank state. The more you work with it, the better it becomes at understanding your needs and generating relevant content.
+        <strong className="font-bold">Please note:</strong> The initial output
+        may not be perfect. It's designed to start as a blank state. The more
+        you work with it, the better it becomes at understanding your needs and
+        generating relevant content.
       </p>
     </div>
   );
@@ -33,14 +38,16 @@ function StepTwo() {
     <div className="space-y-4">
       <h3 className="text-2xl font-semibold text-gray-800">How It Works</h3>
       <p className="text-base text-gray-600">
-        The Content Writer uses a dynamic system of rules to improve its performance over time. These rules help guide the AI in generating content that matches your style and needs.
+        The Content Writer uses a dynamic system of rules to improve its
+        performance over time. These rules help guide the AI in generating
+        content that matches your style and needs.
       </p>
-      <p className="text-base text-gray-600">
-        There are two types of rules:
-      </p>
+      <p className="text-base text-gray-600">There are two types of rules:</p>
       <ul className="list-disc list-inside text-base text-gray-600 space-y-2">
         <li>Style rules: Guidelines for tone, structure, and writing style</li>
-        <li>Content rules: Domain-specific guidelines for context and purpose</li>
+        <li>
+          Content rules: Domain-specific guidelines for context and purpose
+        </li>
       </ul>
       <p className="text-base text-gray-600">
         Rules are automatically generated and updated when you:
@@ -50,7 +57,11 @@ function StepTwo() {
         <li>Edit and save any AI-generated message</li>
       </ul>
       <p className="text-base text-gray-600">
-        Each time a rule is generated, the system evaluates all existing rules for relevance and freshness. Rules may be updated, combined, or removed based on the latest context and your interactions. This ensures that the Content Writer continuously adapts to your evolving needs and preferences.
+        Each time a rule is generated, the system evaluates all existing rules
+        for relevance and freshness. Rules may be updated, combined, or removed
+        based on the latest context and your interactions. This ensures that the
+        Content Writer continuously adapts to your evolving needs and
+        preferences.
       </p>
     </div>
   );
@@ -66,9 +77,12 @@ interface StepThreeProps {
 function StepThree(props: StepThreeProps) {
   return (
     <div className="space-y-4">
-      <h3 className="text-2xl font-semibold text-gray-800">Customize Your Experience</h3>
+      <h3 className="text-2xl font-semibold text-gray-800">
+        Customize Your Experience
+      </h3>
       <p className="text-base text-gray-600">
-        Below are the default system rules. These are included in every request, and can only be modified by you, the user.
+        Below are the default system rules. These are included in every request,
+        and can only be modified by you, the user.
       </p>
       <p className="text-base text-gray-600">
         Feel free to edit them to better suit your needs:
@@ -104,7 +118,7 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
     if (!hasUserSeenDialog) {
       setOpen(true);
     }
-  }, [])
+  }, []);
 
   const handleClose = () => {
     if (process.env.NODE_ENV !== "development") {
@@ -128,13 +142,19 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
     }
   };
 
-  const handlePointerDownOutside: DialogContentProps["onPointerDownOutside"] = (event) => {
+  const handlePointerDownOutside: DialogContentProps["onPointerDownOutside"] = (
+    event
+  ) => {
     event.preventDefault();
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl p-8 bg-white rounded-lg shadow-xl" onPointerDownOutside={handlePointerDownOutside} hideCloseIcon={true}>
+      <DialogContent
+        className="max-w-2xl p-8 bg-white rounded-lg shadow-xl"
+        onPointerDownOutside={handlePointerDownOutside}
+        hideCloseIcon={true}
+      >
         <DialogHeader>
           <DialogTitle className="text-3xl font-light text-gray-800">
             LangChain's Content Writer
