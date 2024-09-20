@@ -26,7 +26,7 @@ function StepOne() {
       </p>
       <p className="text-base text-gray-600 font-light">
         <strong className="font-bold">Please note:</strong> The initial output
-        may not be perfect. It's designed to start as a blank state. The more
+        may not be perfect. It&apos;s designed to start as a blank state. The more
         you work with it, the better it becomes at understanding your needs and
         generating relevant content.
       </p>
@@ -151,7 +151,7 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
       >
         <DialogHeader>
           <DialogTitle className="text-3xl font-light text-gray-800">
-            LangChain's Content Writer
+            LangChain&apos;s Content Writer
           </DialogTitle>
           <DialogDescription className="mt-2 text-lg font-light text-gray-600">
             Your intelligent companion for crafting engaging content
