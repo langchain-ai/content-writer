@@ -22,7 +22,6 @@ import {
   CopyIcon,
   PencilIcon,
   SendHorizontalIcon,
-  PlusCircleIcon,
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";

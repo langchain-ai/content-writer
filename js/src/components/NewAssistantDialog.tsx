@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { FormEventHandler, useState } from "react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -15,9 +15,33 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { type Assistant } from "@langchain/langgraph-sdk";
 
-export function NewAssistantDialog() {
+export interface NewAssistantDialogProps {
+  createAssistant: (
+    graphId: string,
+    extra?: { assistantName?: string, assistantDescription?: string }
+  ) => Promise<Assistant | undefined>;
+}
+
+export function NewAssistantDialog(props: NewAssistantDialogProps) {
   const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+
+  const handleCreateNewAssistant = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await props.createAssistant(process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID ?? "", {
+      assistantName: name,
+      assistantDescription: description,
+    });
+    setIsLoading(false);
+    setOpen(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -34,13 +58,17 @@ export function NewAssistantDialog() {
       <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl">
         <DialogHeader>
           <DialogTitle className="text-3xl font-light text-gray-800">
-            System Rules
+            Create a new assistant
           </DialogTitle>
-          <DialogDescription className="mt-2 text-md font-light text-gray-600">
-            The system rules set by you, included in every request.
-          </DialogDescription>
         </DialogHeader>
-        <div className="mt-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"></div>
+        <div className="mt-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <form onSubmit={handleCreateNewAssistant}>
+            <label>Name</label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tweet writer" />
+            <label>Description</label>
+            <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="For writing tweets about..." />
+          </form>
+        </div>
         <div className="mt-6 flex justify-end">
           <Button
             onClick={() => {}}

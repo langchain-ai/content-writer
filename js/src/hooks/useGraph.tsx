@@ -1,4 +1,3 @@
-import { Client } from "@langchain/langgraph-sdk";
 import { useState } from "react";
 import { createClient } from "./utils";
 
@@ -15,12 +14,12 @@ export function useGraph() {
 
   const createAssistant = async (
     graphId: string,
-    extra?: { assistantName: string }
+    extra?: { assistantName?: string, assistantDescription?: string }
   ) => {
     if (assistantId) return;
     const client = createClient();
-    const metadata = extra?.assistantName
-      ? { assistantName: extra.assistantName }
+    const metadata = extra
+      ? { ...extra }
       : undefined;
 
     const assistant = await client.assistants.create({ graphId, metadata });
