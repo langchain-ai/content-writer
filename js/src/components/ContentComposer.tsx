@@ -138,7 +138,7 @@ export function ContentComposerChatInterface(
           </p>
         ),
         duration: 10000,
-      })
+      });
       await sendMessage({
         messages: currentConversation.map(convertToOpenAIFormat),
         hasAcceptedText: true,
@@ -148,7 +148,7 @@ export function ContentComposerChatInterface(
       toast({
         title: "Successfully generated rules ✅",
         duration: 2500,
-      })
+      });
     } catch (error) {
       console.error("Error editing message:", error);
     }
@@ -182,7 +182,7 @@ export function ContentComposerChatInterface(
                 </p>
               ),
               duration: 10000,
-            })
+            });
             await sendMessage({
               messages: allMessages.map(convertToOpenAIFormat),
               hasAcceptedText: true,
@@ -192,7 +192,7 @@ export function ContentComposerChatInterface(
             toast({
               title: "Successfully generated rules ✅",
               duration: 2500,
-            })
+            });
           }}
         />
       </AssistantRuntimeProvider>
