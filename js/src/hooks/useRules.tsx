@@ -80,7 +80,8 @@ export function useRules(assistantId: string | undefined) {
 
     try {
       const response = await client.runs.wait(null, assistantId, {
-        input: { onlyGetRules: true },
+        input: {},
+        config: { configurable: { onlyGetRules: true } },
       });
 
       const { rules } = response as Record<string, any>;
