@@ -171,7 +171,7 @@ export function useGraph(input: UseGraphInput) {
       metadata: { userId },
     });
     setCookie(USER_TIED_TO_ASSISTANT, "true");
-  }
+  };
 
   return {
     assistantId,
