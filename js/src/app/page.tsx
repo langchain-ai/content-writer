@@ -9,6 +9,7 @@ import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useGraph } from "@/hooks/useGraph";
 import { SystemRulesDialog } from "@/components/SystemRulesDialog";
 import { useUser } from "@/hooks/useUser";
+import { AssistantsDropdown } from "@/components/AssistantsDropdown";
 
 export default function Home() {
   const { userId } = useUser();
@@ -18,7 +19,9 @@ export default function Home() {
     streamMessage,
     assistantId,
     setAssistantId,
-  } = useGraph({ userId });
+    isGetAssistantsLoading,
+    getAssistantsByUserId,
+  } = useGraph();
   const {
     setSystemRules,
     systemRules,
@@ -31,6 +34,7 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!userId) return;
     if (assistantId) return;
     if (!process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID) {
       throw new Error("Missing NEXT_PUBLIC_LANGGRAPH_GRAPH_ID");
@@ -39,7 +43,7 @@ export default function Home() {
     // The assistant ID can not be found in the env vars, so create a new one.
     const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
     if (!assistantIdCookie) {
-      createAssistant(process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID).then(
+      createAssistant(process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID, userId).then(
         (assistant) => {
           if (!assistant && !assistantId) {
             throw new Error("Failed to create assistant");
@@ -52,7 +56,7 @@ export default function Home() {
     } else {
       setAssistantId(assistantIdCookie);
     }
-  }, [assistantId]);
+  }, [assistantId, userId]);
 
   useEffect(() => {
     if (!assistantId) return;
@@ -67,20 +71,28 @@ export default function Home() {
 
   return (
     <main className="h-screen">
-      <ContentComposerChatInterface
-        createAssistant={createAssistant}
-        systemRules={systemRules}
-        sendMessage={sendMessage}
-        streamMessage={streamMessage}
+      <AssistantsDropdown
+        selectedAssistantId={assistantId}
+        isGetAssistantsLoading={isGetAssistantsLoading}
+        getAssistantsByUserId={getAssistantsByUserId}
+        setAssistantId={setAssistantId}
+        userId={userId}
       />
-      <WelcomeDialog
+      <GeneratedRulesDialog userRules={userRules} />
+      <SystemRulesDialog
         setSystemRules={setSystemRules}
         setSystemRulesAndSave={setSystemRulesAndSave}
         isLoadingSystemRules={isLoadingSystemRules}
         systemRules={systemRules}
       />
-      <GeneratedRulesDialog userRules={userRules} />
-      <SystemRulesDialog
+      <ContentComposerChatInterface
+        createAssistant={createAssistant}
+        systemRules={systemRules}
+        sendMessage={sendMessage}
+        streamMessage={streamMessage}
+        userId={userId}
+      />
+      <WelcomeDialog
         setSystemRules={setSystemRules}
         setSystemRulesAndSave={setSystemRulesAndSave}
         isLoadingSystemRules={isLoadingSystemRules}

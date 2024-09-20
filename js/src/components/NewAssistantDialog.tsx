@@ -21,12 +21,14 @@ import { type Assistant } from "@langchain/langgraph-sdk";
 export interface NewAssistantDialogProps {
   createAssistant: (
     graphId: string,
+    userId: string,
     extra?: {
       assistantName?: string;
       assistantDescription?: string;
       overrideExisting?: boolean;
     }
   ) => Promise<Assistant | undefined>;
+  userId: string | undefined;
 }
 
 export function NewAssistantDialog(props: NewAssistantDialogProps) {
@@ -39,9 +41,13 @@ export function NewAssistantDialog(props: NewAssistantDialogProps) {
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
+    if (!props.userId) {
+      throw new Error("User ID is required");
+    }
     setIsLoading(true);
     await props.createAssistant(
       process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID ?? "",
+      props.userId,
       {
         assistantName: name,
         assistantDescription: description,

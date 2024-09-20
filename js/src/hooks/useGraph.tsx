@@ -10,16 +10,14 @@ export interface GraphInput {
   systemRules: string | undefined;
 }
 
-export interface UseGraphInput {
-  userId?: string;
-}
-
-export function useGraph(input: UseGraphInput) {
+export function useGraph() {
   const [threadId, setThreadId] = useState<string>();
   const [assistantId, setAssistantId] = useState<string>();
+  const [isGetAssistantsLoading, setIsGetAssistantsLoading] = useState(false);
 
   const createAssistant = async (
     graphId: string,
+    userId: string,
     extra?: {
       assistantName?: string;
       assistantDescription?: string;
@@ -28,7 +26,11 @@ export function useGraph(input: UseGraphInput) {
   ) => {
     if (assistantId && !extra?.overrideExisting) return;
     const client = createClient();
-    const metadata = { ...(extra || {}), userId: input.userId };
+    const metadata = {
+      userId,
+      assistantName: extra?.assistantName,
+      assistantDescription: extra?.assistantDescription,
+    };
 
     const assistant = await client.assistants.create({ graphId, metadata });
     setAssistantId(assistant.assistant_id);
@@ -85,11 +87,29 @@ export function useGraph(input: UseGraphInput) {
     });
   };
 
+  const getAssistantsByUserId = async (userId: string) => {
+    setIsGetAssistantsLoading(true);
+    const client = createClient();
+    const query = {
+      metadata: { userId },
+    };
+    const results = await client.assistants.search(query);
+    setIsGetAssistantsLoading(false);
+    return results;
+  };
+
+  const updateAssistant = (assistantId: string) => {
+    setAssistantId(assistantId);
+    setCookie(ASSISTANT_ID_COOKIE, assistantId);
+  };
+
   return {
     assistantId,
-    setAssistantId,
+    setAssistantId: updateAssistant,
     streamMessage,
     sendMessage,
     createAssistant,
+    isGetAssistantsLoading,
+    getAssistantsByUserId,
   };
 }
