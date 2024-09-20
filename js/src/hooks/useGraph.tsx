@@ -10,7 +10,11 @@ export interface GraphInput {
   systemRules: string | undefined;
 }
 
-export function useGraph(userId: string | undefined) {
+export interface UseGraphInput {
+  userId?: string;
+}
+
+export function useGraph(input: UseGraphInput) {
   const [threadId, setThreadId] = useState<string>();
   const [assistantId, setAssistantId] = useState<string>();
   const [isGetAssistantsLoading, setIsGetAssistantsLoading] = useState(false);
@@ -26,19 +30,20 @@ export function useGraph(userId: string | undefined) {
 
     if (assistantIdCookie) {
       setAssistantId(assistantIdCookie);
-    } else if (userId) {
-      createAssistant(process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID, userId).then(
-        (assistant) => {
-          if (!assistant) {
-            throw new Error("Failed to create assistant");
-          }
-          const newAssistantId = assistant.assistant_id;
-          setCookie(ASSISTANT_ID_COOKIE, newAssistantId);
-          setAssistantId(newAssistantId);
+    } else if (input.userId) {
+      createAssistant(
+        process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID,
+        input.userId
+      ).then((assistant) => {
+        if (!assistant) {
+          throw new Error("Failed to create assistant");
         }
-      );
+        const newAssistantId = assistant.assistant_id;
+        setCookie(ASSISTANT_ID_COOKIE, newAssistantId);
+        setAssistantId(newAssistantId);
+      });
     }
-  }, [userId]);
+  }, [input.userId]);
 
   const createAssistant = async (
     graphId: string,

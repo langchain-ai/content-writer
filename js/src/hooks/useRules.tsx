@@ -58,6 +58,7 @@ export function useRules(assistantId: string | undefined) {
   const setSystemRulesAndSave = async (newSystemRules: string) => {
     if (!assistantId || assistantId === "") return;
     setIsSavingSystemRules(true);
+
     try {
       setSystemRules(newSystemRules);
       await fetch("/api/system_rules", {
@@ -76,6 +77,7 @@ export function useRules(assistantId: string | undefined) {
     if (!assistantId || assistantId === "") return;
     setIsLoadingUserRules(true);
     const client = createClient();
+
     try {
       const response = await client.runs.wait(null, assistantId, {
         input: { onlyGetRules: true },

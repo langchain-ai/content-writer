@@ -21,7 +21,7 @@ export default function Home() {
     setAssistantId,
     isGetAssistantsLoading,
     getAssistantsByUserId,
-  } = useGraph(userId);
+  } = useGraph({ userId });
   const {
     setSystemRules,
     systemRules,
