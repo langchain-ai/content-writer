@@ -29,6 +29,8 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
   }, [props.userId]);
 
   const handleChangeAssistant = (assistantId: string) => {
+    if (assistantId === props.selectedAssistantId) return;
+
     props.setAssistantId(assistantId);
     // Force page reload
     window.location.reload();
