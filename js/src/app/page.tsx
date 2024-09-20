@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { useRules } from "@/hooks/useRules";
-import { Rules } from "@/components/RulesDialog";
+import { GeneratedRulesDialog } from "@/components/GeneratedRulesDialog";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useGraph } from "@/hooks/useGraph";
+import { SystemRulesDialog } from "@/components/SystemRulesDialog";
 
 export default function Home() {
   const {
@@ -75,12 +76,12 @@ export default function Home() {
         isLoadingSystemRules={isLoadingSystemRules}
         systemRules={systemRules}
       />
-      <Rules
+      <GeneratedRulesDialog userRules={userRules} />
+      <SystemRulesDialog
         setSystemRules={setSystemRules}
         setSystemRulesAndSave={setSystemRulesAndSave}
         isLoadingSystemRules={isLoadingSystemRules}
         systemRules={systemRules}
-        userRules={userRules}
       />
     </main>
   );
