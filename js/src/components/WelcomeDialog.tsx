@@ -92,7 +92,10 @@ function StepThree(props: StepThreeProps) {
         value={props.systemRules}
         onChange={(e) => props.setSystemRules(e.target.value)}
       />
-      <p className="text-base text-gray-600">Optionally, you can give your assistant a name and description. This has no effect on the generated content.</p>
+      <p className="text-base text-gray-600">
+        Optionally, you can give your assistant a name and description. This has
+        no effect on the generated content.
+      </p>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Name <span className="text-xs text-gray-500">(optional)</span>
@@ -106,8 +109,7 @@ function StepThree(props: StepThreeProps) {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Description{" "}
-          <span className="text-xs text-gray-500">(optional)</span>
+          Description <span className="text-xs text-gray-500">(optional)</span>
         </label>
         <Textarea
           rows={2}
@@ -127,7 +129,10 @@ export interface WelcomeDialogProps {
   setSystemRulesAndSave: (newSystemRules: string) => Promise<void>;
   setSystemRules: (newSystemRules: string) => void;
   assistantId: string | undefined;
-  updateAssistantMetadata: (assistantId: string, fields: { metadata: Record<string, any> }) => Promise<Assistant>;
+  updateAssistantMetadata: (
+    assistantId: string,
+    fields: { metadata: Record<string, any> }
+  ) => Promise<Assistant>;
 }
 
 export function WelcomeDialog(props: WelcomeDialogProps) {
@@ -154,15 +159,16 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
     void setSystemRulesAndSave(systemRules ?? "");
     if (assistantName || assistantDescription) {
       if (!props.assistantId) {
-        throw new Error("Unable to update assistant metadata: assistantId is undefined");
-        
+        throw new Error(
+          "Unable to update assistant metadata: assistantId is undefined"
+        );
       }
       void props.updateAssistantMetadata(props.assistantId, {
         metadata: {
           assistantName,
           assistantDescription,
-        }
-      })
+        },
+      });
     }
     setOpen(false);
   };
