@@ -16,6 +16,9 @@ import {
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
 import { GraphInput } from "@/hooks/useGraph";
+import { Toaster } from "./ui/toaster";
+import { useToast } from "@/hooks/use-toast";
+import { Loader } from "lucide-react";
 
 export interface ContentComposerChatInterfaceProps {
   systemRules: string | undefined;
@@ -43,6 +46,7 @@ export function ContentComposerChatInterface(
   const [isRunning, setIsRunning] = useState(false);
   // Use this state field to determine whether or not to generate insights.
   const [contentGenerated, setContentGenerated] = useState(false);
+  const { toast } = useToast();
 
   async function onNew(message: AppendMessage): Promise<void> {
     if (message.content[0]?.type !== "text") {
@@ -126,12 +130,25 @@ export function ContentComposerChatInterface(
     if (!contentGenerated) return;
 
     try {
+      toast({
+        description: (
+          <p className="flex items-center">
+            Rule generation triggered
+            <Loader className="ml-2 h-4 w-4 animate-spin" />
+          </p>
+        ),
+        duration: 10000,
+      })
       await sendMessage({
         messages: currentConversation.map(convertToOpenAIFormat),
         hasAcceptedText: true,
         contentGenerated: true,
         systemRules,
       });
+      toast({
+        title: "Successfully generated rules ✅",
+        duration: 2500,
+      })
     } catch (error) {
       console.error("Error editing message:", error);
     }
@@ -157,15 +174,29 @@ export function ContentComposerChatInterface(
           onCopy={async () => {
             // Do not generate insights if content hasn't been generated
             if (!contentGenerated) return;
+            toast({
+              description: (
+                <p className="flex items-center">
+                  Rule generation triggered
+                  <Loader className="ml-2 h-4 w-4 animate-spin" />
+                </p>
+              ),
+              duration: 10000,
+            })
             await sendMessage({
               messages: allMessages.map(convertToOpenAIFormat),
               hasAcceptedText: true,
               contentGenerated: true,
               systemRules,
             });
+            toast({
+              title: "Successfully generated rules ✅",
+              duration: 2500,
+            })
           }}
         />
       </AssistantRuntimeProvider>
+      <Toaster />
     </div>
   );
 }
