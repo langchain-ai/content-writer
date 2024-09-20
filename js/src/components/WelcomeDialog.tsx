@@ -64,7 +64,7 @@ function StepTwo() {
 interface StepThreeProps {
   setOpen: (open: boolean) => void;
   setSystemRulesAndSave: (newSystemRules: string) => Promise<void>;
-  systemRules: string;
+  systemRules: string | undefined;
   setSystemRules: (newSystemRules: string) => void;
 }
 
@@ -158,7 +158,7 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
         <div className="mt-6">
           {step === 1 && <StepOne />}
           {step === 2 && <StepTwo />}
-          {step === 3 && !isLoadingSystemRules && systemRules && (
+          {step === 3 && !isLoadingSystemRules && (
             <StepThree
               systemRules={systemRules}
               setSystemRules={setSystemRules}

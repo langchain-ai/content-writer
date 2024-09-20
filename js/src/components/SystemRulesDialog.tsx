@@ -53,7 +53,7 @@ export function SystemRulesDialog(props: SystemRulesProps) {
           </DialogDescription>
         </DialogHeader>
         <div className="mt-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {!isLoadingSystemRules && systemRules ? (
+          {!isLoadingSystemRules ? (
             <div className="flex flex-col gap-4">
               <p className="text-sm font-light text-gray-600 mb-4">
                 The agent has a set of &quot;system rules&quot; which are
