@@ -12,7 +12,8 @@ import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { DEFAULT_SYSTEM_RULES } from "../constants";
-import { UserRules } from "@/hooks/useRules";
+import { ChatGroq } from "@langchain/groq";
+import { UserRules } from "@/hooks/useGraph";
 
 const DEFAULT_SYSTEM_RULES_STRING = `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`;
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";
@@ -78,9 +79,9 @@ const callModel = async (
   state: typeof GraphAnnotation.State,
   config?: RunnableConfig
 ) => {
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-20240620",
-    temperature: 0,
+  const model = new ChatGroq({
+    model: "llama-3.1-70b-versatile",
+    temperature: 0.7,
   });
 
   let styleRules: string | undefined;
@@ -161,9 +162,12 @@ Based on the conversation, and paying particular attention to any changes made i
 These rules should be split into two categories:
 1. Style guidelines: These rules should focus on the style, tone, and structure of the text.
 2. Content guidelines: These rules should focus on the content, context, and purpose of the text. Think of this as the business logic or domain-specific rules.
+  It should ONLY contain business logic that would be relevant across many different content generations. Do NOT include rules that are overly specific to a single conversation.
 
 In your response, include every single rule you want the AI assistant to follow in the future. You should list rules based on a combination of the existing conversation as well as previous rules.
 You can modify previous rules if you think the new conversation has helpful information, or you can delete old rules if they don't seem relevant, or you can add new rules based on the conversation.
+Keep in mind some rules in the "content guidelines" may not have been mentioned in this conversation, but are still important to include.
+Ensure you're not removing any context just because it wasn't mentioned in the conversation. You should only remove if it's overly obvious that it is no longer relevant.
 
 Refrain from adding overly generic rules like "follow instructions". These generic rules are already outlined in the "system_rules" below.
 Instead, focus your attention on specific details, writing style, or other aspects of the conversation that you think are important for the AI to follow.
