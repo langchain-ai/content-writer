@@ -14,25 +14,6 @@ import {
 import { Button } from "./ui/button";
 import { NewAssistantDialog } from "./NewAssistantDialog";
 
-/**
- * ISSUE:
- * assistant is generated on page load if not already present.
- * user goes through onboarding flow, creates a new assistant.
- * this updates the assistant, but the dropdown still only has the old assistant (which doesnt have a name set)
- * need some sort of callback to trigger a new request when update assistant is called, that will trigger a re-request here.
- */
-
-async function getAssistantsByUserId(
-  userId: string,
-  fields: {
-    getAssistantsByUserId: (userId: string) => Promise<Assistant[]>;
-    setAssistants: (assistants: Assistant[]) => void;
-  }
-) {
-  const assistants = await fields.getAssistantsByUserId(userId);
-  fields.setAssistants(assistants);
-}
-
 export interface AssistantsDropdownProps {
   selectedAssistantId: string | undefined;
   isGetAssistantsLoading: boolean;
@@ -130,15 +111,13 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
                 Fetching assistants
                 <Loader className="ml-2 h-4 w-4 animate-spin" />
               </p>
-            ) : (
+            ) : assistants.length ? (
               assistants.map((assistant, idx) => {
                 const assistantName =
                   (assistant.metadata?.assistantName as string | undefined) ||
                   `My assistant ${idx + 1}`;
                 const assistantDescription = assistant.metadata
                   ?.assistantDescription as string | undefined;
-                const isSelected =
-                  assistant.assistant_id === props.selectedAssistantId;
                 return (
                   <DropdownMenuRadioItem
                     key={assistant.assistant_id}
@@ -156,6 +135,10 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
                   </DropdownMenuRadioItem>
                 );
               })
+            ) : (
+              <p className="text-sm text-gray-700 p-2">
+                No assistants found. Please create one.
+              </p>
             )}
           </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
