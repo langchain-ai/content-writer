@@ -340,7 +340,9 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
     window.location.reload();
   };
 
-  const dropdownLabel = selectedAssistant ? selectedAssistant.metadata?.assistantName as string : "Select assistant";
+  const dropdownLabel = selectedAssistant
+    ? (selectedAssistant.metadata?.assistantName as string)
+    : "Select assistant";
 
   return (
     <div className="fixed top-4 left-4 z-50">
@@ -374,7 +376,10 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
                   <DropdownMenuRadioItem
                     key={assistant.assistant_id}
                     value={assistant.assistant_id}
-                    className={cn("py-2 cursor-pointer", isSelected && "bg-gray-100")}
+                    className={cn(
+                      "py-2 cursor-pointer",
+                      isSelected && "bg-gray-100"
+                    )}
                   >
                     <div className="flex flex-col">
                       <p className="text-sm text-gray-800">{assistantName}</p>
