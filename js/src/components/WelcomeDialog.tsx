@@ -16,6 +16,7 @@ import { Textarea } from "./ui/textarea";
 import { Progress } from "@radix-ui/react-progress";
 import { Input } from "./ui/input";
 import { type Assistant } from "@langchain/langgraph-sdk";
+import { Loader } from "lucide-react";
 
 function StepOne() {
   return (
@@ -64,6 +65,7 @@ function StepTwo() {
 }
 
 interface StepThreeProps {
+  isLoading: boolean;
   setOpen: (open: boolean) => void;
   setSystemRulesAndSave: (newSystemRules: string) => Promise<void>;
   systemRules: string | undefined;
@@ -87,38 +89,52 @@ function StepThree(props: StepThreeProps) {
       <p className="text-base text-gray-600">
         Feel free to edit them to better suit your needs:
       </p>
-      <Textarea
-        rows={8}
-        value={props.systemRules}
-        onChange={(e) => props.setSystemRules(e.target.value)}
-      />
-      <p className="text-base text-gray-600">
-        Optionally, you can give your assistant a name and description. This has
-        no effect on the generated content.
-      </p>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Name <span className="text-xs text-gray-500">(optional)</span>
-        </label>
-        <Input
-          value={props.assistantName}
-          onChange={(e) => props.setAssistantName(e.target.value)}
-          placeholder="Tweet writer"
-          className="w-full"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Description <span className="text-xs text-gray-500">(optional)</span>
-        </label>
-        <Textarea
-          rows={2}
-          value={props.assistantDescription}
-          onChange={(e) => props.setAssistantDescription(e.target.value)}
-          placeholder="For writing tweets about..."
-          className="w-full"
-        />
-      </div>
+      {!props.isLoading ? (
+        <>
+          <Textarea
+            rows={8}
+            value={props.systemRules}
+            onChange={(e) => props.setSystemRules(e.target.value)}
+          />
+          <p className="text-base text-gray-600">
+            Optionally, you can give your assistant a name and description. This
+            has no effect on the generated content.
+          </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Name <span className="text-xs text-gray-500">(optional)</span>
+            </label>
+            <Input
+              value={props.assistantName}
+              onChange={(e) => props.setAssistantName(e.target.value)}
+              placeholder="Tweet writer"
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description{" "}
+              <span className="text-xs text-gray-500">(optional)</span>
+            </label>
+            <Textarea
+              rows={2}
+              value={props.assistantDescription}
+              onChange={(e) => props.setAssistantDescription(e.target.value)}
+              placeholder="For writing tweets about..."
+              className="w-full"
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="flex items-center">
+            <Loader className="mr-2 h-6 w-6 animate-spin" />
+            <span className="text-base text-gray-600">
+              Just a moment while we get everything ready...
+            </span>
+          </p>
+        </>
+      )}
     </div>
   );
 }
@@ -213,6 +229,7 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
           {step === 2 && <StepTwo />}
           {step === 3 && !isLoadingSystemRules && (
             <StepThree
+              isLoading={isLoadingSystemRules}
               systemRules={systemRules}
               setSystemRules={setSystemRules}
               setSystemRulesAndSave={setSystemRulesAndSave}
