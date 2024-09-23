@@ -36,11 +36,15 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
   const [selectedAssistant, setSelectedAssistant] = useState<Assistant | null>(
     null
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!props.userId || !props.selectedAssistantId || assistants.length > 0)
+    if (!props.userId || !props.selectedAssistantId || assistants.length > 0) {
+      setIsLoading(false);
       return;
+    }
 
+    setIsLoading(true);
     props.getAssistantsByUserId(props.userId).then((a) => {
       if (!a.length) {
         return [];
@@ -56,6 +60,7 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
         (assistant) => assistant.assistant_id !== props.selectedAssistantId
       );
       setAssistants([selectedAssistant, ...otherAssistants]);
+      setIsLoading(false);
     });
   }, [props.userId, props.selectedAssistantId]);
 
@@ -67,9 +72,17 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
     window.location.reload();
   };
 
+  const defaultButtonValue = isLoading ? (
+    <p className="flex items-center text-sm text-gray-600 p-2">
+      Loading assistants
+      <Loader className="ml-2 h-4 w-4 animate-spin" />
+    </p>
+  ) : (
+    "Select assistant"
+  );
   const dropdownLabel = selectedAssistant
     ? (selectedAssistant.metadata?.assistantName as string)
-    : "Select assistant";
+    : defaultButtonValue;
 
   return (
     <div className="fixed top-4 left-4 z-50">
