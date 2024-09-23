@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "./utils";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { ASSISTANT_ID_COOKIE, USER_TIED_TO_ASSISTANT } from "@/constants";
+import { useToast } from "./use-toast";
 
 export interface GraphInput {
   messages: Record<string, any>[];
@@ -10,15 +11,23 @@ export interface GraphInput {
   systemRules: string | undefined;
 }
 
+export interface UserRules {
+  styleRules?: string[];
+  contentRules?: string[];
+}
+
 export interface UseGraphInput {
   userId: string | undefined;
-  refreshAssistants: () => void;
+  refreshAssistants: () => Promise<void>;
 }
 
 export function useGraph(input: UseGraphInput) {
+  const { toast } = useToast();
   const [threadId, setThreadId] = useState<string>();
   const [assistantId, setAssistantId] = useState<string>();
   const [isGetAssistantsLoading, setIsGetAssistantsLoading] = useState(false);
+  const [isLoadingUserRules, setIsLoadingUserRules] = useState(false);
+  const [userRules, setUserRules] = useState<UserRules | undefined>();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -52,6 +61,18 @@ export function useGraph(input: UseGraphInput) {
     if (!input.userId) return;
     void ensureAssistantIsTiedToUser(input.userId);
   }, [assistantId, input.userId]);
+
+  useEffect(() => {
+    if (!assistantId) return;
+
+    const fetchRules = async () => {
+      if (!userRules) {
+        await getUserRules();
+      }
+    };
+
+    void fetchRules();
+  }, [assistantId]);
 
   const createAssistant = async (
     graphId: string,
@@ -105,9 +126,7 @@ export function useGraph(input: UseGraphInput) {
     });
   };
 
-  const sendMessage = async (
-    params: GraphInput
-  ): Promise<Record<string, any>> => {
+  const sendMessage = async (params: GraphInput) => {
     const { messages, hasAcceptedText, contentGenerated, systemRules } = params;
     if (!assistantId) {
       throw new Error("Assistant ID is required");
@@ -120,13 +139,25 @@ export function useGraph(input: UseGraphInput) {
     }
 
     const client = createClient();
-    const input = { messages, contentGenerated };
+    const requestInput = { messages, contentGenerated };
     const config = { configurable: { systemRules, hasAcceptedText } };
-    return await client.runs.wait(tmpThreadId, assistantId, {
-      input,
+    const update = await client.runs.wait(tmpThreadId, assistantId, {
+      input: requestInput,
       config,
       streamMode: "events",
     });
+
+    if (hasAcceptedText) {
+      // Do not await so it is not blocking
+      getUserRules().catch((_) => {
+        toast({
+          title: "Failed to re-fetch user rules.",
+          description: "Please refresh the page to see the updated rules.",
+        });
+      });
+    }
+
+    return update;
   };
 
   const getAssistantsByUserId = async (userId: string) => {
@@ -143,7 +174,7 @@ export function useGraph(input: UseGraphInput) {
   const updateAssistant = (assistantId: string) => {
     setAssistantId(assistantId);
     setCookie(ASSISTANT_ID_COOKIE, assistantId);
-    input.refreshAssistants();
+    void input.refreshAssistants();
   };
 
   const updateAssistantMetadata = async (
@@ -157,7 +188,7 @@ export function useGraph(input: UseGraphInput) {
       assistantId,
       fields
     );
-    input.refreshAssistants();
+    void input.refreshAssistants();
     return updatedAssistant;
   };
 
@@ -176,6 +207,26 @@ export function useGraph(input: UseGraphInput) {
     setCookie(USER_TIED_TO_ASSISTANT, "true");
   };
 
+  const getUserRules = async () => {
+    if (!assistantId || assistantId === "") return;
+    setIsLoadingUserRules(true);
+    const client = createClient();
+
+    try {
+      const response = await client.runs.wait(null, assistantId, {
+        input: {},
+        config: { configurable: { onlyGetRules: true } },
+      });
+
+      const { rules } = response as Record<string, any>;
+      if (rules?.styleRules?.length || rules?.contentRules?.length) {
+        setUserRules(rules);
+      }
+    } finally {
+      setIsLoadingUserRules(false);
+    }
+  };
+
   return {
     assistantId,
     setAssistantId: updateAssistant,
@@ -185,5 +236,7 @@ export function useGraph(input: UseGraphInput) {
     isGetAssistantsLoading,
     getAssistantsByUserId,
     updateAssistantMetadata,
+    userRules,
+    isLoadingUserRules,
   };
 }
