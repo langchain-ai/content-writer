@@ -56,9 +56,11 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
   const [selectedAssistant, setSelectedAssistant] = useState<Assistant | null>(
     null
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchAssistants = useCallback(async () => {
     if (!props.userId || !props.selectedAssistantId) return;
+    setIsLoading(true);
     let assistants = await props.getAssistantsByUserId(props.userId);
     if (props.selectedAssistantId) {
       const currentSelectedAssistant = assistants.find(
@@ -74,10 +76,13 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
       }
     }
     setAssistants(assistants);
+    setIsLoading(false);
   }, [props.userId, props.selectedAssistantId]);
 
   useEffect(() => {
-    if (!props.userId || assistants.length > 0) return;
+    if (!props.userId || assistants.length > 0) {
+      setIsLoading(false);
+    }
     void fetchAssistants();
   }, [props.userId, props.selectedAssistantId, assistants.length]);
 
@@ -93,6 +98,15 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
     window.location.reload();
   };
 
+  const defaultButtonValue = isLoading ? (
+    <p className="flex items-center text-sm text-gray-600 p-2">
+      Loading assistants
+      <Loader className="ml-2 h-4 w-4 animate-spin" />
+    </p>
+  ) : (
+    "Select assistant"
+  );
+
   return (
     <div className="fixed top-4 left-4 z-50">
       <DropdownMenu>
@@ -100,7 +114,7 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
           <Button variant="outline">
             {selectedAssistant?.metadata?.assistantName
               ? (selectedAssistant.metadata.assistantName as string)
-              : "Select assistant"}
+              : defaultButtonValue}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="min-w-64 ml-4">
