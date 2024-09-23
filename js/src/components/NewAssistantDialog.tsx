@@ -8,12 +8,6 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { PlusCircleIcon, Loader } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { type Assistant } from "@langchain/langgraph-sdk";
@@ -61,18 +55,13 @@ export function NewAssistantDialog(props: NewAssistantDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <TooltipProvider>
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger
-              onClick={() => setOpen(true)}
-              className="hover:cursor-pointer"
-              asChild
-            >
-              <PlusCircleIcon />
-            </TooltipTrigger>
-            <TooltipContent>New assistant</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <p
+          className="flex items-center font-normal"
+          onClick={() => setOpen(true)}
+        >
+          Create assistant
+          <PlusCircleIcon className="ml-2 h-4 w-4" />
+        </p>
       </DialogTrigger>
       <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl">
         <DialogHeader>
