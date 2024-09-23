@@ -1,6 +1,6 @@
 "use client";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { useRules } from "@/hooks/useRules";
@@ -12,6 +12,9 @@ import { useUser } from "@/hooks/useUser";
 import { AssistantsDropdown } from "@/components/AssistantsDropdown";
 
 export default function Home() {
+  const [refreshAssistants, setRefreshAssistants] = useState<
+    () => Promise<void>
+  >(() => () => Promise.resolve());
   const { userId } = useUser();
   const {
     createAssistant,
@@ -22,7 +25,7 @@ export default function Home() {
     isGetAssistantsLoading,
     getAssistantsByUserId,
     updateAssistantMetadata,
-  } = useGraph({ userId });
+  } = useGraph({ userId, refreshAssistants });
   const {
     setSystemRules,
     systemRules,
@@ -40,6 +43,9 @@ export default function Home() {
         getAssistantsByUserId={getAssistantsByUserId}
         setAssistantId={setAssistantId}
         userId={userId}
+        onAssistantUpdate={(callback: () => Promise<void>) =>
+          setRefreshAssistants(() => callback)
+        }
       />
       <GeneratedRulesDialog userRules={userRules} />
       <SystemRulesDialog

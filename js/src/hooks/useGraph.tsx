@@ -11,7 +11,8 @@ export interface GraphInput {
 }
 
 export interface UseGraphInput {
-  userId?: string;
+  userId: string | undefined;
+  refreshAssistants: () => void;
 }
 
 export function useGraph(input: UseGraphInput) {
@@ -142,6 +143,7 @@ export function useGraph(input: UseGraphInput) {
   const updateAssistant = (assistantId: string) => {
     setAssistantId(assistantId);
     setCookie(ASSISTANT_ID_COOKIE, assistantId);
+    input.refreshAssistants();
   };
 
   const updateAssistantMetadata = async (
@@ -155,6 +157,7 @@ export function useGraph(input: UseGraphInput) {
       assistantId,
       fields
     );
+    input.refreshAssistants();
     return updatedAssistant;
   };
 

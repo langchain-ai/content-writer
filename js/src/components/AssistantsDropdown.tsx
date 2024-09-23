@@ -1,5 +1,5 @@
 import { type Assistant } from "@langchain/langgraph-sdk";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Loader } from "lucide-react";
 import {
@@ -13,6 +13,25 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { NewAssistantDialog } from "./NewAssistantDialog";
+
+/**
+ * ISSUE:
+ * assistant is generated on page load if not already present.
+ * user goes through onboarding flow, creates a new assistant.
+ * this updates the assistant, but the dropdown still only has the old assistant (which doesnt have a name set)
+ * need some sort of callback to trigger a new request when update assistant is called, that will trigger a re-request here.
+ */
+
+async function getAssistantsByUserId(
+  userId: string,
+  fields: {
+    getAssistantsByUserId: (userId: string) => Promise<Assistant[]>;
+    setAssistants: (assistants: Assistant[]) => void;
+  }
+) {
+  const assistants = await fields.getAssistantsByUserId(userId);
+  fields.setAssistants(assistants);
+}
 
 export interface AssistantsDropdownProps {
   selectedAssistantId: string | undefined;
@@ -29,6 +48,7 @@ export interface AssistantsDropdownProps {
       overrideExisting?: boolean;
     }
   ) => Promise<Assistant | undefined>;
+  onAssistantUpdate: (callback: () => Promise<void>) => void;
 }
 
 export function AssistantsDropdown(props: AssistantsDropdownProps) {
@@ -37,27 +57,33 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
     null
   );
 
-  useEffect(() => {
-    if (!props.userId || !props.selectedAssistantId || assistants.length > 0)
-      return;
+  const fetchAssistants = useCallback(async () => {
+    if (!props.userId || !props.selectedAssistantId) return;
+    let assistants = await props.getAssistantsByUserId(props.userId);
+    if (props.selectedAssistantId) {
+      const currentSelectedAssistant = assistants.find(
+        (a) => a.assistant_id === props.selectedAssistantId
+      );
 
-    props.getAssistantsByUserId(props.userId).then((a) => {
-      if (!a.length) {
-        return [];
+      if (currentSelectedAssistant) {
+        const otherAssistants = assistants.filter(
+          (a) => a.assistant_id !== props.selectedAssistantId
+        );
+        assistants = [currentSelectedAssistant, ...otherAssistants];
+        setSelectedAssistant(currentSelectedAssistant);
       }
-      const selectedAssistant = a.find(
-        (assistant) => assistant.assistant_id === props.selectedAssistantId
-      );
-      if (!selectedAssistant) {
-        return a;
-      }
-      setSelectedAssistant(selectedAssistant);
-      const otherAssistants = a.filter(
-        (assistant) => assistant.assistant_id !== props.selectedAssistantId
-      );
-      setAssistants([selectedAssistant, ...otherAssistants]);
-    });
+    }
+    setAssistants(assistants);
   }, [props.userId, props.selectedAssistantId]);
+
+  useEffect(() => {
+    if (!props.userId || assistants.length > 0) return;
+    void fetchAssistants();
+  }, [props.userId, props.selectedAssistantId, assistants.length]);
+
+  useEffect(() => {
+    props.onAssistantUpdate(fetchAssistants);
+  }, [props.onAssistantUpdate]);
 
   const handleChangeAssistant = (assistantId: string) => {
     if (assistantId === props.selectedAssistantId) return;
@@ -67,15 +93,15 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
     window.location.reload();
   };
 
-  const dropdownLabel = selectedAssistant
-    ? (selectedAssistant.metadata?.assistantName as string)
-    : "Select assistant";
-
   return (
     <div className="fixed top-4 left-4 z-50">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline">{dropdownLabel}</Button>
+          <Button variant="outline">
+            {selectedAssistant?.metadata?.assistantName
+              ? (selectedAssistant.metadata.assistantName as string)
+              : "Select assistant"}
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="min-w-64 ml-4">
           <DropdownMenuLabel>Assistants</DropdownMenuLabel>
@@ -103,10 +129,7 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
                   <DropdownMenuRadioItem
                     key={assistant.assistant_id}
                     value={assistant.assistant_id}
-                    className={cn(
-                      "py-2 cursor-pointer",
-                      isSelected && "bg-gray-100"
-                    )}
+                    className={cn("py-2 cursor-pointer")}
                   >
                     <div className="flex flex-col">
                       <p className="text-sm text-gray-800">{assistantName}</p>
