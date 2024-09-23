@@ -50,105 +50,25 @@ To run the app, first open the project in LangGraph Studio. Then, copy the devel
 Next, run the following commands:
 
 ```bash
-cd
+cd ./js
+
+yarn dev
 ```
+
+This will start the web-server on [`localhost:3000`](http://localhost:3000).
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Features
 
-- **Next.js Integration:** A robust Next.js frontend that provides a seamless user experience.
-- **LangGraph's SharedValue:** Utilizes the `SharedValue` feature to persist user-specific data in memory, allowing the assistant to remember and adapt to individual user preferences.
-- **Dynamic Rule Generation:** The assistant generates and updates style and content rules based on user interactions, ensuring the content aligns with the user's desired tone and objectives.
-- **Real-time Streaming:** Implements real-time message streaming with support for different streaming types, enhancing interactivity and responsiveness.
-- **User-Friendly Interface:** Equipped with intuitive UI components built with Tailwind CSS and React, including dialogs, dropdowns, and editable message threads.
-- **Vercel KV Integration:** Uses Vercel KV for efficient key-value storage, ensuring quick data retrieval and storage operations.
-- **Customized Markdown Rendering:** Advanced markdown rendering with syntax highlighting and support for LaTeX via KaTeX, enhancing the readability of content.
+### Shared State
 
-## Technology Stack
+Shared state (or shared values) is a concept in LangGraph which allows developers to create fields in their graph state which persist between threads.
 
-- **Frontend:** Next.js, React, Tailwind CSS
-- **State Management:** LangGraph with SharedValue
-- **AI & NLP:** LangChain, LangGraph SDK, ChatAnthropic
-- **Storage:** Vercel KV
-- **Utilities:** TypeScript, Zod for schema validation, UUID for unique identifiers
+This is different from checkpointers for a few min reasons:
 
-## Getting Started
+1. Shared state fields are scoped to single fields, not entire threads.
+2. Each shared state field is tied to a specific key, so it can be accessed from multiple graphs which shared the same key.
+3. Shared state fields are not returned in the response, and are only available inside of the graph nodes.
 
-### Prerequisites
-
-- **Node.js:** Ensure you have Node.js installed (version 14 or higher recommended).
-- **Yarn:** Package manager for installing dependencies.
-
-### Installation
-
-1. **Clone the Repository:**
-
-   ```bash
-   git clone https://github.com/yourusername/content-writer-assistant.git
-   cd content-writer-assistant
-   ```
-
-2. **Install Dependencies:**
-
-   ```bash
-   yarn install
-   ```
-
-3. **Setup Environment Variables:**
-
-   Create a `.env` file in the root directory and add the following variables:
-
-   ```bash
-   LANGGRAPH_API_URL=http://localhost:8123 # Or your production URL
-   LANGCHAIN_API_KEY=YOUR_API_KEY
-   NEXT_PUBLIC_LANGGRAPH_GRAPH_ID=YOUR_GRAPH_ID
-   KV_REST_API_TOKEN=your_vercel_kv_token
-   KV_REST_API_URL=your_vercel_kv_url
-   NEXT_PUBLIC_API_URL=http://localhost:3000/api
-   ```
-
-### Running the Application
-
-Start the development server:
-
-```bash
-yarn dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the app in action.
-
-## How It Works
-
-### SharedValue Feature
-
-The `SharedValue` feature in LangGraph allows the application to persist and share specific values across different parts of the application seamlessly. In Content Writer Assistant, `SharedValue` is used to store user-defined rules that guide the content generation process.
-
-- **User Rules Persistence:** When a user interacts with the assistant by providing feedback or editing generated content, these interactions update the shared rules stored using `SharedValue`. These rules are then used to tailor future content generation, ensuring consistency and alignment with user preferences.
-- **State Management:** The application builds a state graph using LangGraph, where nodes represent different stages of the conversation and rule generation. `SharedValue` ensures that rules persist across these nodes, maintaining a coherent and personalized user experience.
-
-### Dynamic Rule Generation
-
-The assistant analyzes user interactions to generate and update a set of style and content rules:
-
-1. **Content Generation:** Users request content generation, and the assistant produces writing based on initial rules.
-2. **User Feedback:** Users can revise the generated content. These revisions are analyzed to understand changes in style, tone, or structure.
-3. **Rule Updates:** Based on the revisions, the assistant updates the `SharedValue` with new or modified rules, refining the content generation process for future interactions.
-
-## Application Structure
-
-- **`src/agent/index.ts`:** Contains the state graph and rule generation logic.
-- **`src/components/`:** Houses all React components, including dialogs, chat interfaces, and UI primitives.
-- **`src/hooks/`:** Custom React hooks for managing state and interactions with LangGraph.
-- **`src/stores/vercel.ts`:** Implements the VercelMemoryStore for interacting with Vercel KV.
-- **`src/app/api/`:** API routes for handling backend logic and streaming responses.
-- **`src/constants.ts`:** Defines application-wide constants, including default system rules and cookie keys.
-- **`src/app/page.tsx`:** The main application page integrating all components and hooks.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
-## License
-
-MIT License. See [LICENSE](LICENSE) for more information.
+This app utilizes shared state to store generated rules on users writing style, business logic, and general context.
