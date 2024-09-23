@@ -34,6 +34,7 @@ export default function Home() {
   return (
     <main className="h-screen">
       <AssistantsDropdown
+        createAssistant={createAssistant}
         selectedAssistantId={assistantId}
         isGetAssistantsLoading={isGetAssistantsLoading}
         getAssistantsByUserId={getAssistantsByUserId}

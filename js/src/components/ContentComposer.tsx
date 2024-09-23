@@ -182,8 +182,6 @@ export function ContentComposerChatInterface(
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <MyThread
-          createAssistant={props.createAssistant}
-          userId={props.userId}
           onCopy={async () => {
             // Do not generate insights if content hasn't been generated
             if (!contentGenerated) return;

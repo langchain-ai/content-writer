@@ -1,16 +1,18 @@
 import { type Assistant } from "@langchain/langgraph-sdk";
 import { useEffect, useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import { cn } from "@/lib/utils";
 import { Loader } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
+import { NewAssistantDialog } from "./NewAssistantDialog";
 
 export interface AssistantsDropdownProps {
   selectedAssistantId: string | undefined;
@@ -18,10 +20,22 @@ export interface AssistantsDropdownProps {
   getAssistantsByUserId: (userId: string) => Promise<Assistant[]>;
   setAssistantId: (assistantId: string) => void;
   userId: string | undefined;
+  createAssistant: (
+    graphId: string,
+    userId: string,
+    extra?: {
+      assistantName?: string;
+      assistantDescription?: string;
+      overrideExisting?: boolean;
+    }
+  ) => Promise<Assistant | undefined>;
 }
 
 export function AssistantsDropdown(props: AssistantsDropdownProps) {
   const [assistants, setAssistants] = useState<Assistant[]>([]);
+  const [selectedAssistant, setSelectedAssistant] = useState<Assistant | null>(
+    null
+  );
 
   useEffect(() => {
     if (!props.userId || !props.selectedAssistantId || assistants.length > 0)
@@ -37,6 +51,7 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
       if (!selectedAssistant) {
         return a;
       }
+      setSelectedAssistant(selectedAssistant);
       const otherAssistants = a.filter(
         (assistant) => assistant.assistant_id !== props.selectedAssistantId
       );
@@ -52,18 +67,24 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
     window.location.reload();
   };
 
+  const dropdownLabel = selectedAssistant
+    ? (selectedAssistant.metadata?.assistantName as string)
+    : "Select assistant";
+
   return (
     <div className="fixed top-4 left-4 z-50">
-      <Select
-        onValueChange={handleChangeAssistant}
-        defaultValue={props.selectedAssistantId}
-      >
-        <SelectTrigger className="w-[280px]">
-          <SelectValue placeholder="Switch assistant" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>My assistants</SelectLabel>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">{dropdownLabel}</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="min-w-64 ml-4">
+          <DropdownMenuLabel>Assistants</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup
+            value={selectedAssistant?.assistant_id}
+            onValueChange={handleChangeAssistant}
+            className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+          >
             {props.isGetAssistantsLoading ? (
               <p className="flex items-center text-sm text-gray-600 p-2">
                 Fetching assistants
@@ -79,26 +100,36 @@ export function AssistantsDropdown(props: AssistantsDropdownProps) {
                 const isSelected =
                   assistant.assistant_id === props.selectedAssistantId;
                 return (
-                  <SelectItem
+                  <DropdownMenuRadioItem
                     key={assistant.assistant_id}
                     value={assistant.assistant_id}
-                    className={cn("py-2", isSelected && "bg-gray-100")}
+                    className={cn(
+                      "py-2 cursor-pointer",
+                      isSelected && "bg-gray-100"
+                    )}
                   >
                     <div className="flex flex-col">
                       <p className="text-sm text-gray-800">{assistantName}</p>
                       {assistantDescription && (
-                        <p className="text-xs font-light text-gray-500 mt-1 truncate">
+                        <p className="text-xs font-light text-gray-500 mt-1 truncate max-w-64">
                           {assistantDescription}
                         </p>
                       )}
                     </div>
-                  </SelectItem>
+                  </DropdownMenuRadioItem>
                 );
               })
             )}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="cursor-pointer">
+            <NewAssistantDialog
+              createAssistant={props.createAssistant}
+              userId={props.userId}
+            />
+          </DropdownMenuLabel>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
