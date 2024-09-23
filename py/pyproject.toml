@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "tweet-composer"
+name = "content-writer"
 version = "0.0.0"
 description = ""
 authors = []

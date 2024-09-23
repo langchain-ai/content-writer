@@ -9,6 +9,7 @@ import {
   ThreadAssistantMessage,
   ThreadPrimitive,
   useActionBarEdit,
+  useComposerCancel,
   useComposerStore,
   useMessage,
   useMessageStore,
@@ -201,6 +202,15 @@ const MyComposerSend = (props: {
 
 const MyEditComposer: FC = () => {
   const [infoDialogOpen, setInfoDialogOpen] = useState(false);
+  const cancelEdit = useComposerCancel();
+  const isLast = useMessage((m) => m.isLast);
+  const wasLast = useRef(isLast);
+
+  useEffect(() => {
+    if (!wasLast.current || isLast) return;
+    // if the message was the last one - cancel the edit whenever it stops being the last one
+    cancelEdit?.();
+  }, [cancelEdit, isLast]);
 
   return (
     <ComposerPrimitive.Root className="bg-muted my-4 flex w-full max-w-2xl flex-col gap-2 rounded-xl">
