@@ -12,7 +12,7 @@ import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { DEFAULT_SYSTEM_RULES } from "../constants";
-import { UserRules } from "@/hooks/useRules";
+import { UserRules } from "@/hooks/useGraph";
 
 const DEFAULT_SYSTEM_RULES_STRING = `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`;
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";

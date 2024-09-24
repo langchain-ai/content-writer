@@ -25,13 +25,14 @@ export default function Home() {
     isGetAssistantsLoading,
     getAssistantsByUserId,
     updateAssistantMetadata,
+    userRules,
+    isLoadingUserRules,
   } = useGraph({ userId, refreshAssistants });
   const {
     setSystemRules,
     systemRules,
     setSystemRulesAndSave,
     isLoadingSystemRules,
-    userRules,
   } = useRules(assistantId);
 
   return (
@@ -47,7 +48,10 @@ export default function Home() {
           setRefreshAssistants(() => callback)
         }
       />
-      <GeneratedRulesDialog userRules={userRules} />
+      <GeneratedRulesDialog
+        isLoadingUserRules={isLoadingUserRules}
+        userRules={userRules}
+      />
       <SystemRulesDialog
         setSystemRules={setSystemRules}
         setSystemRulesAndSave={setSystemRulesAndSave}
