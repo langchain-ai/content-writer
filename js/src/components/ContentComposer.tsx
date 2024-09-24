@@ -85,7 +85,6 @@ export function ContentComposerChatInterface(
       const fullMessage = await processStream(response, {
         setRenderedMessages,
         setContentGenerated,
-        contentGenerated,
       });
       setAllMessages((prevMessages) => [...prevMessages, fullMessage]);
     } catch (error) {

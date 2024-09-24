@@ -80,11 +80,10 @@ export async function processStream(
   >,
   extra: {
     setRenderedMessages: (value: React.SetStateAction<BaseMessage[]>) => void;
-    contentGenerated: boolean;
     setContentGenerated: (value: React.SetStateAction<boolean>) => void;
   }
 ) {
-  const { setRenderedMessages, contentGenerated, setContentGenerated } = extra;
+  const { setRenderedMessages, setContentGenerated } = extra;
   let fullMessage = new AIMessage({
     content: "",
     id: "",
@@ -99,17 +98,17 @@ export async function processStream(
 
       const newText = processCallModelStreamEvent(streamEvent);
       const toolCall = processWasContentGeneratedToolCallEvent(streamEvent);
-      const wasContentGenerated =
+      const wasContentGenerated: boolean | undefined =
         toolCall && toolCall.name === "was_content_generated"
           ? toolCall.args.contentGenerated
-          : false;
+          : undefined;
 
       if (newText) {
         fullMessage = new AIMessage({
           id: fullMessage.id,
           content: fullMessage.content + newText,
         });
-      } else if (wasContentGenerated || contentGenerated) {
+      } else if (wasContentGenerated) {
         setContentGenerated(true);
         fullMessage = new AIMessage({
           id: fullMessage.id,
@@ -118,6 +117,9 @@ export async function processStream(
             contentGenerated: true,
           },
         });
+      } else if (wasContentGenerated === false) {
+        // Check for false instead of falsy value to avoid setting contentGenerated to false when it's undefined.
+        setContentGenerated(false);
       }
 
       if (fullMessage.content && fullMessage.id) {
