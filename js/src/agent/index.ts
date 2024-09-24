@@ -12,7 +12,6 @@ import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { DEFAULT_SYSTEM_RULES } from "../constants";
-import { ChatGroq } from "@langchain/groq";
 import { UserRules } from "@/hooks/useGraph";
 
 const DEFAULT_SYSTEM_RULES_STRING = `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`;
@@ -79,9 +78,9 @@ const callModel = async (
   state: typeof GraphAnnotation.State,
   config?: RunnableConfig
 ) => {
-  const model = new ChatGroq({
-    model: "llama-3.1-70b-versatile",
-    temperature: 0.7,
+  const model = new ChatAnthropic({
+    model: "claude-3-5-sonnet-20240620",
+    temperature: 0,
   });
 
   let styleRules: string | undefined;
@@ -145,24 +144,29 @@ const generateInsights = async (
   state: typeof GraphAnnotation.State,
   config?: RunnableConfig
 ) => {
-  const systemPrompt = `Your task is to create a list of rules to help the AI assistant generate better text in the future, based on the following conversation between a user and the assistant.
+  const systemPrompt = `This conversation contains back and fourth between an AI assistant, and a user who is using the assistant to generate text.
 
-Focus especially on any messages prefixed with "REVISED MESSAGE", which contain the user's complete revision of the assistant's previous message. Pay very close attention to every change the user makes, no matter how small, and heavily consider them when generating rules.
+User messages which are prefixed with "REVISED MESSAGE" contain the entire revised text the user made to the assistant message directly before in the conversation.
+Revisions are made directly by users, so you should pay VERY close attention to every single change made, no matter how small. These should be heavily considered when generating rules.
 
-Key aspects to consider in the revisions:
-- Deletions: What did the user remove? Should you create a rule to avoid adding this in the future?
-- Tone: Did the user alter the overall tone? Should you establish a rule to maintain this tone?
-- Structure: Did the user modify the text's structure? This may indicate a common pattern to remember.
+Important aspects of revisions to consider:
+- Deletions: What did the user remove? Do you need a rule to avoid adding this in the future?
+- Tone: Did they change the overall tone? Do you need a rule to ensure this tone is maintained?
+- Structure: Did they change the structure of the text? This is important to remember, as it may be a common pattern. 
 
-Divide the rules into two categories:
-1. Style guidelines: Focus on the style, tone, and structure of the text.
-2. Content guidelines: Focus on the content, context, and purpose of the text—business logic or domain-specific rules relevant across multiple content generations. Do not include rules overly specific to a single conversation.
+There also may be additional back and fourth between the user and the assistant.
 
-In your response, include every rule you want the AI assistant to follow in the future, based on a combination of the current conversation and previous rules. You may modify previous rules if the new conversation provides helpful information, delete old rules if they seem irrelevant, or add new rules based on the conversation.
+Based on the conversation, and paying particular attention to any changes made in the "REVISED MESSAGE", your job is to create a list of rules to use in the future to help the AI assistant better generate text.
 
-Remember that some content guidelines may not have been mentioned in this conversation but are still important to include. Ensure you don't remove any context just because it wasn't mentioned; remove only if it's obviously no longer relevant.
+These rules should be split into two categories:
+1. Style guidelines: These rules should focus on the style, tone, and structure of the text.
+2. Content guidelines: These rules should focus on the content, context, and purpose of the text. Think of this as the business logic or domain-specific rules.
 
-Avoid adding overly generic rules like "follow instructions"; such rules are already covered in the <system_rules> below. Focus on specific details, writing style, or other aspects of the conversation that are important for the AI to follow.
+In your response, include every single rule you want the AI assistant to follow in the future. You should list rules based on a combination of the existing conversation as well as previous rules.
+You can modify previous rules if you think the new conversation has helpful information, or you can delete old rules if they don't seem relevant, or you can add new rules based on the conversation.
+
+Refrain from adding overly generic rules like "follow instructions". These generic rules are already outlined in the "system_rules" below.
+Instead, focus your attention on specific details, writing style, or other aspects of the conversation that you think are important for the AI to follow.
 
 The user has defined the following rules:
 
@@ -186,7 +190,7 @@ And here are the default system rules:
 {systemRules}
 </system_rules>
 
-Respond with updated rules to keep in mind for future conversations. Strive for a high signal-to-noise ratio: don't include unnecessary rules, but ensure the ones you add are descriptive. Combine similar or contradictory rules.`;
+Respond with updated rules to keep in mind for future conversations. Try to keep the rules you list high signal-to-noise - don't include unnecessary ones, but make sure the ones you do add are descriptive. Combine ones that seem similar and/or contradictory`;
 
   let styleRules = DEFAULT_RULES_STRING;
   let contentRules = DEFAULT_RULES_STRING;
