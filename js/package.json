@@ -10,7 +10,7 @@
     "format": "prettier --config .prettierrc --write \"src\""
   },
   "dependencies": {
-    "@assistant-ui/react": "^0.5.56",
+    "@assistant-ui/react": "^0.5.63",
     "@assistant-ui/react-langgraph": "^0.0.5",
     "@assistant-ui/react-markdown": "^0.2.12",
     "@assistant-ui/react-syntax-highlighter": "^0.0.11",

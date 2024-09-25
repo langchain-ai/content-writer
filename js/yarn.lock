@@ -50,10 +50,10 @@
   resolved "https://registry.yarnpkg.com/@assistant-ui/react-syntax-highlighter/-/react-syntax-highlighter-0.0.11.tgz#162766831f6bf73b791de8611d6c397bbab48e35"
   integrity sha512-n5+8/zE5Aj5OIdrFqk3wqlY+CqywjxlTeMWNQY2Y4PyyLDoQKM5UwUifFBzjQKvaC7SGPopFqK0eyvhGZ1qCNA==
 
-"@assistant-ui/react@^0.5.56":
-  version "0.5.56"
-  resolved "https://registry.yarnpkg.com/@assistant-ui/react/-/react-0.5.56.tgz#6daf316b87a4bf99aefeba0fcbe19645ea0da598"
-  integrity sha512-gSILHOoFrk+DGA6KQmkZheSWBaOWedIw2ereSBKhzaq6V5lH72GOIEaQN64po6C/RAzbWhN12HGankTPJdJqig==
+"@assistant-ui/react@^0.5.63":
+  version "0.5.63"
+  resolved "https://registry.yarnpkg.com/@assistant-ui/react/-/react-0.5.63.tgz#3c748a79e09581d247b7cb6ca2f384d3dd96e21d"
+  integrity sha512-fIdxat3+JKjjqwxyAAJUbqzuZOss90lNiPQ59Azy4V1wuDpEHLjktAE7vN45TQvDCH+DyKzPbss0hh2WSpCpVw==
   dependencies:
     "@ai-sdk/provider" "^0.0.23"
     "@radix-ui/primitive" "^1.1.0"
@@ -69,7 +69,7 @@
     class-variance-authority "^0.7.0"
     classnames "^2.5.1"
     json-schema "^0.4.0"
-    lucide-react "^0.441.0"
+    lucide-react "^0.445.0"
     nanoid "^5.0.7"
     react-textarea-autosize "^8.5.3"
     secure-json-parse "^2.7.0"
@@ -2991,6 +2991,11 @@ lucide-react@^0.441.0:
   version "0.441.0"
   resolved "https://registry.yarnpkg.com/lucide-react/-/lucide-react-0.441.0.tgz#afc0d76c5ffb5bdac7adf0c9626217a5451b1af1"
   integrity sha512-0vfExYtvSDhkC2lqg0zYVW1Uu9GsI4knuV9GP9by5z0Xhc4Zi5RejTxfz9LsjRmCyWVzHCJvxGKZWcRyvQCWVg==
+
+lucide-react@^0.445.0:
+  version "0.445.0"
+  resolved "https://registry.yarnpkg.com/lucide-react/-/lucide-react-0.445.0.tgz#35c42341e98fbf0475b2a6cf74fd25ef7cbfcd62"
+  integrity sha512-YrLf3aAHvmd4dZ8ot+mMdNFrFpJD7YRwQ2pUcBhgqbmxtrMP4xDzIorcj+8y+6kpuXBF4JB0NOCTUWIYetJjgA==
 
 markdown-table@^3.0.0:
   version "3.0.3"

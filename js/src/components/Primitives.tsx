@@ -10,6 +10,7 @@ import {
   ThreadPrimitive,
   useActionBarEdit,
   useComposerCancel,
+  useComposerSend,
   useComposerStore,
   useMessage,
   useMessageStore,
@@ -205,6 +206,7 @@ const MyEditComposer: FC = () => {
   const cancelEdit = useComposerCancel();
   const isLast = useMessage((m) => m.isLast);
   const wasLast = useRef(isLast);
+  const send = useComposerSend();
 
   useEffect(() => {
     if (!wasLast.current || isLast) return;
@@ -212,9 +214,24 @@ const MyEditComposer: FC = () => {
     cancelEdit?.();
   }, [cancelEdit, isLast]);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter") {
+      if ((e.metaKey || e.ctrlKey) && send) {
+        // Only submit on `CMD + Enter` or `CTRL + Enter`
+        e.preventDefault();
+        send();
+      }
+    }
+  };
+
   return (
     <ComposerPrimitive.Root className="bg-muted my-4 flex w-full max-w-2xl flex-col gap-2 rounded-xl">
-      <ComposerPrimitive.Input className="text-foreground flex h-8 w-full resize-none border-none bg-transparent p-4 pb-0 outline-none focus:ring-0" />
+      <ComposerPrimitive.Input
+        className="text-foreground flex h-8 w-full resize-none border-none bg-transparent p-4 pb-0 outline-none focus:ring-0"
+        onKeyDown={handleKeyDown}
+        // Don't submit on `Enter`, instead add a newline.
+        submitOnEnter={false}
+      />
 
       <div className="mx-3 mb-3 flex items-center justify-center gap-2 self-end">
         <ComposerPrimitive.Cancel asChild>
