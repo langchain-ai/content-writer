@@ -70,3 +70,13 @@ This is different from checkpointers for a few min reasons:
 3. Shared state fields are not returned in the response, and are only available inside of the graph nodes.
 
 This app utilizes shared state to store generated rules on users writing style, business logic, and general context.
+
+### Multiple Assistants
+
+Content Writer Assistant supports multiple assistants, each leveraging LangGraph's `SharedValue` state for unique contexts.
+
+- **Customization**: Create assistants with distinct names, descriptions, and system rules.
+- **Isolated Contexts**: Each assistant maintains separate generated rules and context in `SharedValue` fields.
+- **Easy Switching**: Toggle between assistants via the top-right dropdown menu.
+
+This feature enables specialized assistants for different writing tasks or styles, improving versatility and organization. Each assistant's unique identifier keys its `SharedValue` field, ensuring efficient retrieval and updating of assistant-specific information.
