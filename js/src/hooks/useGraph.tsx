@@ -210,7 +210,6 @@ export function useGraph(input: UseGraphInput) {
       metadata: {
         ...currentAssistant.metadata,
         userId,
-        version: currentAssistant.version,
       },
     });
     setCookie(USER_TIED_TO_ASSISTANT, "true");
