@@ -1,8 +1,6 @@
 "use client";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
-import { useEffect, useState } from "react";
-import { ASSISTANT_ID_COOKIE } from "@/constants";
-import { getCookie, setCookie } from "@/lib/cookies";
+import { useState } from "react";
 import { useRules } from "@/hooks/useRules";
 import { GeneratedRulesDialog } from "@/components/GeneratedRulesDialog";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
@@ -72,6 +70,7 @@ export default function Home() {
         systemRules={systemRules}
         updateAssistantMetadata={updateAssistantMetadata}
         assistantId={assistantId}
+        userId={userId}
       />
     </main>
   );
