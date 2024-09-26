@@ -145,6 +145,7 @@ export interface WelcomeDialogProps {
   setSystemRulesAndSave: (newSystemRules: string) => Promise<void>;
   setSystemRules: (newSystemRules: string) => void;
   assistantId: string | undefined;
+  userId: string | undefined;
   updateAssistantMetadata: (
     assistantId: string,
     fields: { metadata: Record<string, any> }
@@ -170,7 +171,7 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
     }
   }, []);
 
-  const handleClose = () => {
+  const handleClose = async () => {
     setCookie(HAS_SEEN_DIALOG, "true");
     void setSystemRulesAndSave(systemRules ?? "");
     if (assistantName || assistantDescription) {
@@ -179,14 +180,19 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
           "Unable to update assistant metadata: assistantId is undefined"
         );
       }
-      void props.updateAssistantMetadata(props.assistantId, {
+      if (!props.userId) {
+        throw new Error("Can not save assistant if userId is undefined.");
+      }
+
+      setOpen(false);
+      await props.updateAssistantMetadata(props.assistantId, {
         metadata: {
           assistantName,
           assistantDescription,
+          userId: props.userId,
         },
       });
     }
-    setOpen(false);
   };
 
   const handleNext = () => {
