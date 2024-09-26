@@ -225,9 +225,9 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <div className="mt-6">
-          {step === 1 && <StepOne />}
-          {step === 2 && <StepTwo />}
-          {step === 3 && !isLoadingSystemRules && (
+          {step === 1 ? <StepOne /> : null}
+          {step === 2 ? <StepTwo /> : null}
+          {step === 3 ? (
             <StepThree
               isLoading={isLoadingSystemRules}
               systemRules={systemRules}
@@ -243,7 +243,7 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
               setAssistantName={setAssistantName}
               setAssistantDescription={setAssistantDescription}
             />
-          )}
+          ) : null}
         </div>
         <div className="mt-8 flex justify-between">
           {step > 1 && (
@@ -257,7 +257,11 @@ export function WelcomeDialog(props: WelcomeDialogProps) {
             </Button>
           )}
           {step === 3 && (
-            <Button className="ml-auto" onClick={handleClose}>
+            <Button
+              className="ml-auto"
+              disabled={isLoadingSystemRules}
+              onClick={handleClose}
+            >
               Get started
             </Button>
           )}
