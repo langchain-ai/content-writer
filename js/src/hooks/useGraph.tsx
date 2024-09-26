@@ -207,7 +207,10 @@ export function useGraph(input: UseGraphInput) {
     }
     // Update assistant metadata to include userId
     await updateAssistantMetadata(assistantId, {
-      metadata: { userId },
+      metadata: {
+        ...currentAssistant.metadata,
+        userId,
+      },
     });
     setCookie(USER_TIED_TO_ASSISTANT, "true");
   };
