@@ -240,10 +240,10 @@
   dependencies:
     uuid "^10.0.0"
 
-"@langchain/langgraph-sdk@^0.0.10":
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.10.tgz#6b9edf450a7a0c1cee1ed933f217141f8ff1a40e"
-  integrity sha512-p2BsUa3r7A97iiKPJYJJucDfrFNYwJg0HkcCWP/fziSAl8pi8tu2HCt4swWwu63T2BRP/ssjRm6HNkSiT++TmQ==
+"@langchain/langgraph-sdk@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.11.tgz#d51ca65489f2d208bf32493bf33f89e7c3df5498"
+  integrity sha512-Bos40RcYoXP5eONBxti/IKp4t/6egQjq84mxU4hN0gvuqIfPakguBPcQZNnVhb9KSHbGa7bpHbxXRYVW8iDwPg==
   dependencies:
     "@types/json-schema" "^7.0.15"
     p-queue "^6.6.2"
