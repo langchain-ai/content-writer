@@ -193,10 +193,15 @@ export function useGraph(input: UseGraphInput) {
   };
 
   const ensureAssistantIsTiedToUser = async (userId: string) => {
-    if (!assistantId || !getCookie(USER_TIED_TO_ASSISTANT)) return;
+    if (!assistantId || getCookie(USER_TIED_TO_ASSISTANT) === "true") return;
+
     const client = createClient();
     const currentAssistant = await client.assistants.get(assistantId);
-    if (currentAssistant.metadata && "userId" in currentAssistant.metadata) {
+    if (
+      currentAssistant.metadata &&
+      "userId" in currentAssistant.metadata &&
+      currentAssistant.metadata.userId === userId
+    ) {
       setCookie(USER_TIED_TO_ASSISTANT, "true");
       return;
     }
