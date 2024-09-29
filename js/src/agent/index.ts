@@ -1,9 +1,9 @@
-import { VercelMemoryStore } from "@/stores/vercel";
 import {
   Annotation,
+  BaseStore,
   END,
+  LangGraphRunnableConfig,
   MessagesAnnotation,
-  SharedValue,
   START,
   StateGraph,
 } from "@langchain/langgraph";
@@ -19,12 +19,6 @@ const DEFAULT_RULES_STRING = "*no rules have been set yet*";
 
 const GraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
-  /**
-   * Shared user rules on how to generate text.
-   * Use `assistant_id` so it matches the assistant,
-   * and can be shared across users.
-   */
-  userRules: SharedValue.on("assistant_id"),
   /**
    * Whether or not writing content was generated in the conversation.
    */
@@ -76,33 +70,43 @@ System rules:
 
 const callModel = async (
   state: typeof GraphAnnotation.State,
-  config?: RunnableConfig
+  config: LangGraphRunnableConfig
 ) => {
   const model = new ChatAnthropic({
     model: "claude-3-5-sonnet-20240620",
     temperature: 0,
   });
 
-  let styleRules: string | undefined;
-  let contentRules: string | undefined;
-  if (state.userRules) {
-    if (state.userRules.styleRules?.length) {
-      styleRules = `- ${state.userRules.styleRules.join("\n - ")}`;
-    }
-    if (state.userRules.contentRules?.length) {
-      contentRules = `- ${state.userRules.contentRules.join("\n - ")}`;
-    }
+  const store: BaseStore | undefined = config.store;
+  if (!store) {
+    throw new Error("Store not found in config.");
   }
+  if (!config.configurable?.assistant_id) {
+    throw new Error("Assistant ID not found in config.");
+  }
+
+  const namespace = [
+    "assistant_id",
+    "userRules",
+    config.configurable?.assistant_id,
+  ];
+  const rules = await store.get(namespace, "rules");
+  const styleRulesString = rules?.value.styleRules
+    ? `- ${rules.value.styleRules.join("\n - ")}`
+    : null;
+  const contentRulesString = rules?.value.contentRules
+    ? `- ${rules.value.contentRules.join("\n - ")}`
+    : null;
 
   let systemPrompt = SYSTEM_PROMPT.replace(
     "{systemRules}",
     config?.configurable?.systemRules ?? DEFAULT_SYSTEM_RULES_STRING
   );
-  if (styleRules || contentRules) {
+  if (styleRulesString || contentRulesString) {
     systemPrompt = systemPrompt
       .replace("{rulesPrompt}", RULES_PROMPT)
-      .replace("{styleRules}", styleRules || DEFAULT_RULES_STRING)
-      .replace("{contentRules}", contentRules || DEFAULT_RULES_STRING);
+      .replace("{styleRules}", styleRulesString || DEFAULT_RULES_STRING)
+      .replace("{contentRules}", contentRulesString || DEFAULT_RULES_STRING);
   } else {
     systemPrompt.replace("{rulesPrompt}", "");
   }
@@ -142,7 +146,7 @@ const _prepareConversation = (messages: BaseMessage[]): string => {
  */
 const generateInsights = async (
   state: typeof GraphAnnotation.State,
-  config?: RunnableConfig
+  config: LangGraphRunnableConfig
 ) => {
   const systemPrompt = `This conversation contains back and fourth between an AI assistant, and a user who is using the assistant to generate text.
 
@@ -192,24 +196,34 @@ And here are the default system rules:
 
 Respond with updated rules to keep in mind for future conversations. Try to keep the rules you list high signal-to-noise - don't include unnecessary ones, but make sure the ones you do add are descriptive. Combine ones that seem similar and/or contradictory`;
 
-  let styleRules = DEFAULT_RULES_STRING;
-  let contentRules = DEFAULT_RULES_STRING;
-  if (state.userRules) {
-    if (state.userRules.styleRules?.length) {
-      styleRules = `- ${state.userRules.styleRules.join("\n - ")}`;
-    }
-    if (state.userRules.contentRules?.length) {
-      contentRules = `- ${state.userRules.contentRules.join("\n - ")}`;
-    }
+  const store: BaseStore | undefined = config.store;
+  if (!store) {
+    throw new Error("Store not found in config.");
   }
+  if (!config.configurable?.assistant_id) {
+    throw new Error("Assistant ID not found in config.");
+  }
+
+  const namespace = [
+    "assistant_id",
+    "userRules",
+    config.configurable?.assistant_id,
+  ];
+  const rules = await store.get(namespace, "rules");
+  const styleRulesString = rules?.value.styleRules
+    ? `- ${rules.value.styleRules.join("\n - ")}`
+    : DEFAULT_RULES_STRING;
+  const contentRulesString = rules?.value.contentRules
+    ? `- ${rules.value.contentRules.join("\n - ")}`
+    : DEFAULT_RULES_STRING;
 
   const prompt = systemPrompt
     .replace(
       "{systemRules}",
-      config?.configurable?.systemRules ?? DEFAULT_SYSTEM_RULES_STRING
+      config.configurable?.systemRules ?? DEFAULT_SYSTEM_RULES_STRING
     )
-    .replace("{styleRules}", styleRules)
-    .replace("{contentRules}", contentRules)
+    .replace("{styleRules}", styleRulesString)
+    .replace("{contentRules}", contentRulesString)
     .replace("{conversation}", _prepareConversation(state.messages));
 
   const userRulesSchema = z.object({
@@ -303,9 +317,27 @@ If the assistant generated content, set 'contentGenerated' to true.
   ]);
 };
 
-const getRules = (state: typeof GraphAnnotation.State) => {
+const getRules = async (
+  _: typeof GraphAnnotation.State,
+  config: LangGraphRunnableConfig
+) => {
+  const store: BaseStore | undefined = config.store;
+  if (!store) {
+    throw new Error("Store not found in config.");
+  }
+  if (!config.configurable?.assistant_id) {
+    throw new Error("Assistant ID not found in config.");
+  }
+
+  const namespace = [
+    "assistant_id",
+    "userRules",
+    config.configurable?.assistant_id,
+  ];
+  const rules = await store.get(namespace, "rules");
+
   return {
-    rules: state.userRules,
+    rules: rules?.value,
   };
 };
 
@@ -334,7 +366,7 @@ const shouldGenerateInsights = (
   return "callModel";
 };
 
-export function buildGraph(store?: VercelMemoryStore) {
+export function buildGraph() {
   const workflow = new StateGraph(GraphAnnotation, GraphConfig)
     .addNode("callModel", callModel)
     .addNode("generateInsights", generateInsights)
@@ -352,7 +384,5 @@ export function buildGraph(store?: VercelMemoryStore) {
     .addEdge("wasContentGenerated", END)
     .addEdge("getRules", END);
 
-  return workflow.compile({
-    store,
-  });
+  return workflow.compile();
 }
