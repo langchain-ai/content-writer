@@ -12,8 +12,7 @@ import { BaseMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { DEFAULT_SYSTEM_RULES } from "../constants";
-import { createNamespace, USER_RULES_STORE_KEY } from "../lib/store";
-import { UserRules } from "../types";
+import { getRulesFromStore, putRulesInStore } from "./utils";
 
 const DEFAULT_SYSTEM_RULES_STRING = `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`;
 const DEFAULT_RULES_STRING = "*no rules have been set yet*";
@@ -58,47 +57,6 @@ System rules:
 </system_rules>
 
 {rulesPrompt}`;
-
-const validateStore = (config: LangGraphRunnableConfig): BaseStore => {
-  if (!config.store) {
-    throw new Error("Store not found in config.");
-  }
-  return config.store;
-};
-
-const getRulesFromStore = async (
-  config: LangGraphRunnableConfig
-): Promise<UserRules> => {
-  const store = validateStore(config);
-  const assistantId = config.configurable?.assistant_id;
-
-  if (!assistantId) {
-    throw new Error("Assistant ID not found in config.");
-  }
-
-  const namespace = createNamespace(assistantId);
-  const rules = await store.get(namespace, USER_RULES_STORE_KEY);
-
-  return {
-    styleRules: rules?.value?.styleRules ?? null,
-    contentRules: rules?.value?.contentRules ?? null,
-  };
-};
-
-const putRulesInStore = async (
-  config: LangGraphRunnableConfig,
-  rules: UserRules
-): Promise<void> => {
-  const store = validateStore(config);
-  const assistantId = config.configurable?.assistant_id;
-
-  if (!assistantId) {
-    throw new Error("Assistant ID not found in config.");
-  }
-
-  const namespace = createNamespace(assistantId);
-  await store.put(namespace, USER_RULES_STORE_KEY, rules);
-};
 
 const callModel = async (
   state: typeof GraphAnnotation.State,
