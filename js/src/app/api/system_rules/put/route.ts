@@ -41,16 +41,16 @@ export async function POST(req: NextRequest) {
   try {
     // Insert new row into user_rules table
     const { data, error } = await supabase
-    .from("user_rules")
-    .upsert(
-      {
-        user_id: userId,
-        assistant_id: assistantId,
-        system_rules: systemRules,
-      },
-      { onConflict: 'user_id,assistant_id', ignoreDuplicates: false }
-    )
-    .select();
+      .from("user_rules")
+      .upsert(
+        {
+          user_id: userId,
+          assistant_id: assistantId,
+          system_rules: systemRules,
+        },
+        { onConflict: "user_id,assistant_id", ignoreDuplicates: false }
+      )
+      .select();
 
     if (error) {
       console.error("Error inserting system rules:", {

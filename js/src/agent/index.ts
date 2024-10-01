@@ -80,8 +80,8 @@ const getRulesFromStore = async (
   const rules = await store.get(namespace, USER_RULES_STORE_KEY);
 
   return {
-    styleRules: rules?.value?.styleRules ?? [],
-    contentRules: rules?.value?.contentRules ?? [],
+    styleRules: rules?.value?.styleRules ?? null,
+    contentRules: rules?.value?.contentRules ?? null,
   };
 };
 
@@ -126,7 +126,7 @@ const callModel = async (
       .replace("{styleRules}", styleRulesString || DEFAULT_RULES_STRING)
       .replace("{contentRules}", contentRulesString || DEFAULT_RULES_STRING);
   } else {
-    systemPrompt.replace("{rulesPrompt}", "");
+    systemPrompt = systemPrompt.replace("{rulesPrompt}", "");
   }
 
   const response = await model.invoke(

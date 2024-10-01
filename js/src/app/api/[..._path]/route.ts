@@ -32,13 +32,10 @@ async function handleRequest(req: NextRequest, method: string) {
       options.body = await req.text();
     }
 
-    const langgraphUrl = "http://localhost:62326"
+    const langgraphUrl = "http://localhost:62326";
     // const langgraphUrl = process.env.LANGGRAPH_API_URL;
 
-    const res = await fetch(
-      `${langgraphUrl}/${path}${queryString}`,
-      options
-    );
+    const res = await fetch(`${langgraphUrl}/${path}${queryString}`, options);
 
     return new NextResponse(res.body, {
       status: res.status,

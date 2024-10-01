@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const langgraphUrl = "http://localhost:62326"
+  const langgraphUrl = "http://localhost:62326";
   // const langgraphUrl = process.env.LANGGRAPH_API_URL;
 
   const lgClient = new Client({
@@ -57,12 +57,14 @@ export async function GET(req: NextRequest) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("Err fetching store")
+    console.error("Err fetching store");
     console.error(e);
-    return new NextResponse(JSON.stringify({ error: "Failed to get item from store" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    })
+    return new NextResponse(
+      JSON.stringify({ error: "Failed to get item from store" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
-
 }
