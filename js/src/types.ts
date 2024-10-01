@@ -14,3 +14,8 @@ export interface ToolCall {
 }
 
 export type Model = "gpt-4o-mini" | string; // Add other model options as needed
+
+export type UserRules = {
+  styleRules: string[];
+  contentRules: string[];
+};

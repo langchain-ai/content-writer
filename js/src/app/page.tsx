@@ -23,15 +23,16 @@ export default function Home() {
     isGetAssistantsLoading,
     getAssistantsByUserId,
     updateAssistantMetadata,
-    userRules,
-    isLoadingUserRules,
   } = useGraph({ userId, refreshAssistants });
   const {
+    userRules,
+    isLoadingUserRules,
     setSystemRules,
     systemRules,
     setSystemRulesAndSave,
     isLoadingSystemRules,
-  } = useRules(assistantId);
+    getUserRules,
+  } = useRules({ assistantId, userId });
 
   return (
     <main className="h-screen">
@@ -59,7 +60,7 @@ export default function Home() {
       <ContentComposerChatInterface
         createAssistant={createAssistant}
         systemRules={systemRules}
-        sendMessage={sendMessage}
+        sendMessage={async (params) => sendMessage(params, getUserRules)}
         streamMessage={streamMessage}
         userId={userId}
       />
