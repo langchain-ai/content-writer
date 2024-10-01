@@ -42,12 +42,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const langgraphUrl = "http://localhost:62326";
-  // const langgraphUrl = process.env.LANGGRAPH_API_URL;
-
   const lgClient = new Client({
     apiKey: process.env.LANGCHAIN_API_KEY,
-    apiUrl: langgraphUrl,
+    apiUrl: process.env.LANGGRAPH_API_URL,
   });
 
   try {
