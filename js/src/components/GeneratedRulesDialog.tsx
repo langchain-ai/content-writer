@@ -8,8 +8,8 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
-import { UserRules } from "@/hooks/useGraph";
 import { Loader } from "lucide-react";
+import { UserRules } from "@/types";
 
 export interface GeneratedRulesProps {
   isLoadingUserRules: boolean;

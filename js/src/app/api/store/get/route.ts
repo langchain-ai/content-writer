@@ -1,0 +1,41 @@
+import { Client } from "@langchain/langgraph-sdk";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(req: NextRequest) {
+  if (!process.env.LANGGRAPH_API_URL || !process.env.LANGCHAIN_API_KEY) {
+    throw new Error("LANGGRAPH_API_URL and LANGCHAIN_API_KEY must be set");
+  }
+
+  const searchParams = req.nextUrl.searchParams;
+  const namespaceParam = searchParams.get('namespace');
+  const key = searchParams.get('key');
+
+  if (!namespaceParam || !key) {
+    return new NextResponse(JSON.stringify({ error: "Missing namespace or key" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Parse the namespace from URL-encoded string to an array of strings
+  const namespace: string = JSON.parse(decodeURIComponent(namespaceParam));
+  const namespaceArr: string[] = namespace.split(".");
+
+  if (!Array.isArray(namespaceArr)) {
+    return new NextResponse(JSON.stringify({ error: "Invalid namespace format" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const lgClient = new Client({
+    apiKey: process.env.LANGCHAIN_API_KEY,
+    apiUrl: process.env.LANGGRAPH_API_URL,
+  });
+
+  const result = await lgClient.store.getItem(namespaceArr, key);
+
+  return new NextResponse(JSON.stringify(result), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
