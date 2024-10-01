@@ -172,14 +172,6 @@ And here are the default system rules:
 
 Respond with updated rules to keep in mind for future conversations. Try to keep the rules you list high signal-to-noise - don't include unnecessary ones, but make sure the ones you do add are descriptive. Combine ones that seem similar and/or contradictory`;
 
-  const store: BaseStore | undefined = config.store;
-  if (!store) {
-    throw new Error("Store not found in config.");
-  }
-  if (!config.configurable?.assistant_id) {
-    throw new Error("Assistant ID not found in config.");
-  }
-
   const { styleRules, contentRules } = await getRulesFromStore(config);
 
   const styleRulesString = styleRules
