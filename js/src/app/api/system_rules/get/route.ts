@@ -42,10 +42,9 @@ export async function GET(req: NextRequest) {
     // Fetch the latest system rules
     const { data, error } = await supabase
       .from("user_rules")
-      .select("systemRules")
-      .eq("userId", userId)
-      .eq("assistantId", assistantId)
-      .order("version", { ascending: false })
+      .select("system_rules")
+      .eq("user_id", userId)
+      .eq("assistant_id", assistantId)
       .limit(1)
       .single();
 

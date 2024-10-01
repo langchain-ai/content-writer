@@ -80,8 +80,8 @@ const getRulesFromStore = async (
   const rules = await store.get(namespace, USER_RULES_STORE_KEY);
 
   return {
-    styleRules: rules?.value.styleRules ?? [],
-    contentRules: rules?.value.contentRules ?? [],
+    styleRules: rules?.value?.styleRules ?? [],
+    contentRules: rules?.value?.contentRules ?? [],
   };
 };
 

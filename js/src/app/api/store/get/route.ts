@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Parse the namespace from URL-encoded string to an array of strings
-  const namespace: string = JSON.parse(decodeURIComponent(namespaceParam));
+  const namespace: string = decodeURIComponent(namespaceParam);
   const namespaceArr: string[] = namespace.split(".");
 
   if (!Array.isArray(namespaceArr)) {
@@ -42,14 +42,27 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const langgraphUrl = "http://localhost:62326"
+  // const langgraphUrl = process.env.LANGGRAPH_API_URL;
+
   const lgClient = new Client({
     apiKey: process.env.LANGCHAIN_API_KEY,
-    apiUrl: process.env.LANGGRAPH_API_URL,
+    apiUrl: langgraphUrl,
   });
 
-  const result = await lgClient.store.getItem(namespaceArr, key);
+  try {
+    const result = await lgClient.store.getItem(namespaceArr, key);
 
-  return new NextResponse(JSON.stringify(result), {
-    headers: { "Content-Type": "application/json" },
-  });
+    return new NextResponse(JSON.stringify(result ?? {}), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.error("Err fetching store")
+    console.error(e);
+    return new NextResponse(JSON.stringify({ error: "Failed to get item from store" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
+
 }

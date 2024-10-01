@@ -2,6 +2,7 @@ import { DEFAULT_SYSTEM_RULES } from "@/constants";
 import { createNamespace, USER_RULES_STORE_KEY } from "@/lib/store";
 import { UserRules } from "@/types";
 import { useState, useEffect } from "react";
+import { useToast } from "./use-toast";
 
 const DEFAULT_SYSTEM_RULES_STRING = `- ${DEFAULT_SYSTEM_RULES.join("\n- ")}`;
 
@@ -11,6 +12,7 @@ export interface UseRulesInput {
 }
 
 export function useRules({ assistantId, userId }: UseRulesInput) {
+  const { toast } = useToast();
   const [systemRules, setSystemRules] = useState<string>();
   const [isLoadingSystemRules, setIsLoadingSystemRules] = useState(false);
   const [isSavingSystemRules, setIsSavingSystemRules] = useState(false);
@@ -47,17 +49,24 @@ export function useRules({ assistantId, userId }: UseRulesInput) {
       const response = await fetch(fullUrl);
 
       if (!response.ok) {
-        // TODO: Add toast here
+        toast({
+          title: "An error occurred fetching user rules",
+        });
         return;
       }
 
       const rules = await response.json();
       if (!rules || !rules.value) {
-        // TODO: Add toast here
+        // Successfully hit API, no rules yet stored.
+        // no-op
         return;
       }
 
       setUserRules(rules.value);
+    } catch (e) {
+      toast({
+        title: "An error occurred fetching user rules",
+      });
     } finally {
       setIsLoadingUserRules(false);
     }
@@ -77,8 +86,8 @@ export function useRules({ assistantId, userId }: UseRulesInput) {
       }
 
       const data = await response.json();
-      if (data?.systemRules) {
-        setSystemRules(data.systemRules);
+      if (data?.system_rules) {
+        setSystemRules(data.system_rules);
       } else {
         setSystemRules(DEFAULT_SYSTEM_RULES_STRING);
       }
