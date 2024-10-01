@@ -36,22 +36,27 @@ export function useRules({ assistantId, userId }: UseRulesInput) {
     if (!assistantId) return;
     setIsLoadingUserRules(true);
     try {
-      const namespace = encodeURIComponent(createNamespace(assistantId).join("."));
-      const queryParams = new URLSearchParams({ namespace, key: USER_RULES_STORE_KEY });
+      const namespace = encodeURIComponent(
+        createNamespace(assistantId).join(".")
+      );
+      const queryParams = new URLSearchParams({
+        namespace,
+        key: USER_RULES_STORE_KEY,
+      });
       const fullUrl = `/api/store/get?${queryParams.toString()}`;
       const response = await fetch(fullUrl);
-  
+
       if (!response.ok) {
         // TODO: Add toast here
         return;
       }
-  
+
       const rules = await response.json();
       if (!rules || !rules.value) {
         // TODO: Add toast here
         return;
       }
-  
+
       setUserRules(rules.value);
     } finally {
       setIsLoadingUserRules(false);
@@ -93,7 +98,11 @@ export function useRules({ assistantId, userId }: UseRulesInput) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ assistantId, userId, systemRules: newSystemRules }),
+        body: JSON.stringify({
+          assistantId,
+          userId,
+          systemRules: newSystemRules,
+        }),
       });
     } finally {
       setIsSavingSystemRules(false);

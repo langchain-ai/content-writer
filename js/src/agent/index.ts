@@ -64,12 +64,14 @@ const validateStore = (config: LangGraphRunnableConfig): BaseStore => {
     throw new Error("Store not found in config.");
   }
   return config.store;
-}
+};
 
-const getRulesFromStore = async (config: LangGraphRunnableConfig): Promise<UserRules> => {
+const getRulesFromStore = async (
+  config: LangGraphRunnableConfig
+): Promise<UserRules> => {
   const store = validateStore(config);
   const assistantId = config.configurable?.assistant_id;
-  
+
   if (!assistantId) {
     throw new Error("Assistant ID not found in config.");
   }
@@ -79,14 +81,17 @@ const getRulesFromStore = async (config: LangGraphRunnableConfig): Promise<UserR
 
   return {
     styleRules: rules?.value.styleRules ?? [],
-    contentRules: rules?.value.contentRules ?? []
+    contentRules: rules?.value.contentRules ?? [],
   };
 };
 
-const putRulesInStore = async (config: LangGraphRunnableConfig, rules: UserRules): Promise<void> => {
+const putRulesInStore = async (
+  config: LangGraphRunnableConfig,
+  rules: UserRules
+): Promise<void> => {
   const store = validateStore(config);
   const assistantId = config.configurable?.assistant_id;
-  
+
   if (!assistantId) {
     throw new Error("Assistant ID not found in config.");
   }
@@ -106,9 +111,7 @@ const callModel = async (
 
   const { styleRules, contentRules } = await getRulesFromStore(config);
 
-  const styleRulesString = styleRules
-    ? `- ${styleRules.join("\n - ")}`
-    : null;
+  const styleRulesString = styleRules ? `- ${styleRules.join("\n - ")}` : null;
   const contentRulesString = contentRules
     ? `- ${contentRules.join("\n - ")}`
     : null;
@@ -264,7 +267,7 @@ Respond with updated rules to keep in mind for future conversations. Try to keep
     ],
     config
   );
-  
+
   await putRulesInStore(config, result);
 
   return {
@@ -357,7 +360,7 @@ export function buildGraph() {
     // No further action by the graph is necessary after either
     // generating a response via `callModel`, or rules via `generateInsights`.
     .addEdge("generateInsights", END)
-    .addEdge("wasContentGenerated", END)
+    .addEdge("wasContentGenerated", END);
 
   return workflow.compile();
 }

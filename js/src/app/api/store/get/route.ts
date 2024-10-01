@@ -3,18 +3,29 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   if (!process.env.LANGGRAPH_API_URL || !process.env.LANGCHAIN_API_KEY) {
-    throw new Error("LANGGRAPH_API_URL and LANGCHAIN_API_KEY must be set");
+    return new NextResponse(
+      JSON.stringify({
+        error: "LANGGRAPH_API_URL and LANGCHAIN_API_KEY must be set",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const searchParams = req.nextUrl.searchParams;
-  const namespaceParam = searchParams.get('namespace');
-  const key = searchParams.get('key');
+  const namespaceParam = searchParams.get("namespace");
+  const key = searchParams.get("key");
 
   if (!namespaceParam || !key) {
-    return new NextResponse(JSON.stringify({ error: "Missing namespace or key" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new NextResponse(
+      JSON.stringify({ error: "Missing namespace or key" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   // Parse the namespace from URL-encoded string to an array of strings
@@ -22,10 +33,13 @@ export async function GET(req: NextRequest) {
   const namespaceArr: string[] = namespace.split(".");
 
   if (!Array.isArray(namespaceArr)) {
-    return new NextResponse(JSON.stringify({ error: "Invalid namespace format" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new NextResponse(
+      JSON.stringify({ error: "Invalid namespace format" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const lgClient = new Client({

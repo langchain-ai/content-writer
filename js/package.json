@@ -27,6 +27,7 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.1",
     "@radix-ui/react-tooltip": "^1.1.2",
+    "@supabase/supabase-js": "^2.45.4",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@vercel/kv": "^2.0.0",
     "class-variance-authority": "^0.7.0",

@@ -100,7 +100,10 @@ export function useGraph(input: UseGraphInput) {
     });
   };
 
-  const sendMessage = async (params: GraphInput, getRulesCallback: () => Promise<void>) => {
+  const sendMessage = async (
+    params: GraphInput,
+    getRulesCallback: () => Promise<void>
+  ) => {
     const { messages, hasAcceptedText, contentGenerated, systemRules } = params;
     if (!assistantId) {
       throw new Error("Assistant ID is required");
